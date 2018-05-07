@@ -34,7 +34,7 @@ function fixed_or_scientific(val, format)
             return replace(format, _fmt_spec_gG, "n")
         else
             mag = log(abs(val))/log(10)
-            if  (mag <= -3) | (mag >= 5)
+            if  (-Inf < mag <= -3) | (mag >= 5)
                 r = "e"
             else
                 r = "f"
@@ -65,9 +65,12 @@ struct FNumSE{T} <: FormattedNumber{T}
     val::T
     se::Float64
     format::String
+    format_se::String
 
-    function FNumSE(val::T, se::Float64, format::String) where T
-        return new{T}(val, se, fixed_or_scientific(val, format))
+    function FNumSE(val::T, se::Float64, format::String,
+                    format_se::String) where T
+        return new{T}(val, se, fixed_or_scientific(val, format),
+                      fixed_or_scientific(se, format_se))
     end
 end
 
@@ -76,25 +79,22 @@ function FormattedNumber(val::T, format::String=default_fmt(T)) where T
     return FNum(val, format)
 end
 
-function FormattedNumber(val::T, se::T, 
-                         format::String=default_fmt(T)) where T
-    return FNumSE(val, se, format)
-end
-
 function FormattedNumber(val::T, se::S, 
-             format::String=default_fmt(promote_type(T,S))) where 
+             format::String=default_fmt(T),
+             format_se::String=default_fmt(S)) where 
              {T<:AbstractFloat, S <: AbstractFloat}
-    
     se2 = Float64(se) 
     newval, newse = promote(val, se)
-    return FNumSE(newval, newse, format)
+    return FNumSE(newval, newse, format, format_se)
 end
 
-function FormattedNumber(val::T, se::AbstractFloat,
-                         format::String=default_fmt(T)) where T
+function FormattedNumber(val::T, se::S,
+                         format::String=default_fmt(T),
+                         format_se::String=default_fmt(S)) where 
+                         {T, S<:AbstractFloat}
     se2 = Float64(se) 
     @assert(isnan(se), "Cannot have non-NaN Standard Errors for $T")
-    return FNumSE(val, se, format)
+    return FNumSE(val, se, format, format_se)
 end
 
 FormattedNumber(x::FormattedNumber) = x
@@ -116,6 +116,6 @@ Base.promote_rule(::Type{FNumSE{T}}, ::Type{FNum{S}}) where {T,S} = FNumSE
 
 
 value(x::FormattedNumber)   = format(x.format, x.val) 
-se(x::FNumSE)               = format("($(x.format))", x.se) 
+se(x::FNumSE)               = format("($(x.format_se))", x.se) 
 se(x::FNum)                 = ""
 
