@@ -15,8 +15,8 @@ end
 
 function Table(args...; kwargs...)
     t = Table() 
-    for col in args
-        push!(t, col)
+    for (i, col) in enumerate(args)
+        push!(t, TableCol(col; colnum=i, kwargs...))
     end
     return t
 end

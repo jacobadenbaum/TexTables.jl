@@ -5,11 +5,14 @@ TableDict = OrderedDict{Printable, FormattedNumber}
 mutable struct TableCol
     header::String
     data::TableDict
+    sub::TableDict
 end
 
 function TableCol(header::String)
     return TableCol(header, TableDict())
 end
+
+TableCol(x::TableCol; kwargs...) = x
 
 ########################################################################
 #################### Constructors ######################################
