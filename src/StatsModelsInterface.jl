@@ -17,8 +17,10 @@ function TableCol(m::StatisticalModel;
                   colnum=1, 
                   stats=(:N=>Int∘nobs, "\$R^2\$"=>r2))
     col = TableCol("($colnum)", varnames(m), coef(m), stderr(m))
+    
+    col2= TableCol("($colnum)")
     for pair in stats
-        col[pair.first] = pair.second(m)
+        col2[pair.first] = pair.second(m)
     end
-    return col
+    return col, col2
 end

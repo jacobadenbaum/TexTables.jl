@@ -2,7 +2,9 @@
 #################### Full Table Type ###################################
 ########################################################################
 
-type Table
+abstract type TexTable end
+
+mutable struct Table <: TexTable
     Columns::Vector
     RowHeader::Vector
     ColHeader::Vector
@@ -48,6 +50,9 @@ function getindex(t::Table, row)
 end
 
 Base.show(io::IO, col::TableCol) = print(io, Table(col))
+
+row_keys(t::Table) = t.RowHeader
+col_keys(t::Table) = t.ColHeader
 
 ########################################################################
 #################### REPL Output #######################################

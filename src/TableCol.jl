@@ -1,11 +1,11 @@
 using DataStructures: OrderedDict
 Printable = Union{Symbol, String}
-TableDict = OrderedDict{Printable, FormattedNumber}
+Contents  = Union{FormattedNumber, OrderedDict{Printable, T} where T} 
+TableDict = OrderedDict{Printable, Contents}
 
 mutable struct TableCol
     header::String
     data::TableDict
-    sub::TableDict
 end
 
 function TableCol(header::String)
