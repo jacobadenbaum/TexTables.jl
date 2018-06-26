@@ -1,9 +1,13 @@
 using DataStructures: OrderedDict
-Printable = Union{Symbol, String}
-Contents  = Union{FormattedNumber, OrderedDict{Printable, T} where T} 
+Printable = Union{Symbol, AbstractString}
+Contents  = Union{FormattedNumber, OrderedDict{Printable, T} where T}
 TableDict = OrderedDict{Printable, Contents}
 
-mutable struct TableCol
+########################################################################
+#################### Columns ###########################################
+########################################################################
+
+mutable struct TableCol <: TexTable
     header::String
     data::TableDict
 end
@@ -19,14 +23,14 @@ TableCol(x::TableCol; kwargs...) = x
 ########################################################################
 
 function TableCol(header, kv::Associative)
-    TableCol(header, 
+    TableCol(header,
              TableDict(key=>FormattedNumber(value)
                        for (key, value) in kv))
 end
 
 function TableCol(header, kv::Associative, kp::Associative)
-    TableCol(header, 
-             TableDict(key=>(key in keys(kp)) ? 
+    TableCol(header,
+             TableDict(key=>(key in keys(kp)) ?
                        FormattedNumber(val, kp[key]) :
                        FormattedNumber(val)
                        for (key, val) in kv))
@@ -50,9 +54,9 @@ end
 ########################################################################
 
 function get_vals(col::TableCol, x::Printable, backup="")
-    if  x in keys(col.data) 
+    if  x in keys(col.data)
         val     = value(col.data[x])
-        seval   = se(col.data[x]) 
+        seval   = se(col.data[x])
     else
         val     = backup
         seval   = ""
@@ -77,7 +81,7 @@ function get_length(col::TableCol)
 end
 
 function setindex!(col::TableCol, value, key)
-    col.data[key] = FormattedNumber(value)     
+    col.data[key] = FormattedNumber(value)
     return col
 end
 

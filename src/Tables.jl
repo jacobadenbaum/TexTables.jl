@@ -12,6 +12,8 @@ export CompositeTable, row_keys, col_keys
 # Import from base to extend
 import Base.getindex, Base.setindex!, Base.push!
 
+abstract type TexTable end
+
 include("FormattedNumbers.jl")
 include("TableCol.jl")
 include("TableFull.jl")

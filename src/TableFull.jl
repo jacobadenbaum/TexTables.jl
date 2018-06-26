@@ -2,8 +2,6 @@
 #################### Full Table Type ###################################
 ########################################################################
 
-abstract type TexTable end
-
 mutable struct Table <: TexTable
     Columns::Vector
     RowHeader::Vector
@@ -16,14 +14,22 @@ function Table(Columns::Vector, RowHeader::Vector, ColHeader::Vector)
 end
 
 function Table(args...; kwargs...)
-    t = Table() 
+    t = Table()
     for (i, col) in enumerate(args)
         push!(t, TableCol(col; colnum=i, kwargs...))
     end
     return t
 end
 
+Table(t::Table) = t
+
 function push!(t::Table, newcol::TableCol)
+    # Check that the names are unique
+    if newcol.header in t.ColHeader
+        msg = "Column Names within a Table must be unique"
+        throw(ArgumentError(msg))
+    end
+
     # Add to the list of columns
     push!(t.Columns, newcol)
 
@@ -49,59 +55,80 @@ function getindex(t::Table, row)
     return output
 end
 
+function get_col(t::Table, col::Union{Int, NTuple{1, T}}) where T
+    return t.Columns[col[1]]
+end
+
 Base.show(io::IO, col::TableCol) = print(io, Table(col))
 
 row_keys(t::Table) = t.RowHeader
 col_keys(t::Table) = t.ColHeader
 
+Base.size(t::Table)= (length(row_keys(t)), length(col_keys(t)))
+
+########################################################################
+#################### Pre-Printing ######################################
+########################################################################
+
+function preprint(t::Table)
+
+    s = Matrix{AbstractString}(dims(t)...)
+
+    for (j, col) in enumerate(t.Columns)
+        for (i, row)  in enumerate(row_keys(t))
+            s[i,j] = col[row]
+        end
+    end
+    return s
+end
+
 ########################################################################
 #################### REPL Output #######################################
 ########################################################################
 function head(t::Table)
-    
+
     # Add Column Names
     output = ""
-    
+
     l = rowheader_length(t)
     output *= format("{:$l} ", "")
     for col in t.Columns
         l = get_length(col)
-        output *= "| $(format("{:$l}", col.header)) " 
+        output *= "| $(format("{:$l}", col.header)) "
     end
-    
+
     # Add a line-break and a horizontal line
     k = length(output)
     output *= "\n"
     output *= "-"^k
     output *= "\n"
-    
-    return output
 
+    return output
 end
 
 function body(t::Table)
-    
+
     # Start the output string
     output = ""
-    
+
     # Get the row-header length
     l = rowheader_length(t)
 
     for key in t.RowHeader
-        row = t[key] 
-        
+        row = t[key]
+
         # Print the name
 
         output *= format("{:>$l} ", String(key) )
         second  = []
         for (val, se) in row
-            output *= "| $val " 
+            output *= "| $val "
             push!(second, se)
         end
 
         # New line
         output *= "\n"
-        
+
         # Only print standard errors if it's nonempty
         if !all(isempty.(strip.(second)))
             output *= format("{:>$l} ", " ")
@@ -122,7 +149,7 @@ Base.show(io::IO, t::Table) = print(io, head(t)*body(t))
 ########################################################################
 
 function tex_head(t::Table)
-    
+
     # Make Alignment
     align = "r|"
     for col in t.Columns
@@ -131,17 +158,17 @@ function tex_head(t::Table)
 
     # Add Column Names
     output = "\\begin{tabular}{$align}\n\\toprule \n"
-    
+
     l = rowheader_length(t)
     output *= format("{:$l} ", "")
     for col in t.Columns
         l = get_length(col)
         output *= "\& $(format("{:$l}", col.header)) "
     end
-    
+
     # Add a line-break and a horizontal line
     output *= "\\\\ \\hline \n"
-    
+
     return output
 
 end
@@ -149,16 +176,16 @@ end
 rowheader_length(t::Table) = maximum(length.(String.(t.RowHeader)))
 
 function tex_body(t::Table)
-    
+
     # Start the output string
     output = ""
-    
+
     # Get the row-header length
     l = rowheader_length(t)
 
     for key in t.RowHeader
-        row = t[key] 
-        
+        row = t[key]
+
         # Print the name
         output *= format("{:>$l} ", String(key) )
         second = []
@@ -169,7 +196,7 @@ function tex_body(t::Table)
 
         # New line
         output *= "\\\\ \n"
-        
+
         # Only print standard errors if it's nonempty
         if !all(isempty.(strip.(second)))
             output *= format("{:>$l} ", "")
