@@ -3,297 +3,304 @@ This code provides the framework to stich together two separate tables
 (either concatenating them horizontally or vertically).
 =#
 
-import Base: join, getindex, size
+import Base: join, getindex, size, hcat, vcat
 
-mutable struct CompositeTable <: TexTable
-    Tables::Array{TexTable}
-    ColHeader::Vector{AbstractString}
-    RowHeader::Vector{AbstractString}
-    CompositeTable(tables::Union{Array{T},T},
-                   ColHeader=String[],
-                   RowHeader=String[]) where T <: TexTable = begin
+mutable struct IndexedTable{N, M}
+    columns::Vector
+    row_index::Index{N}
+    col_index::Index{M}
+end
 
-        # Need to do some argument checking
-        t    = Table.(hcat(tables))
-        n, m = size(t)
-        q, r = length(RowHeader), length(ColHeader)
+IndexedTable(t::TableCol) = begin
+    columns     = vcat(t)
+    row_index   = keys(t.data) |> collect
+    col_index   = vcat(t.header)
+    return IndexedTable(columns, row_index, col_index)
+end
 
-        # If the row headers are not empty, check that there's one for
-        # every row of sub-tables.  Otherwise, use vector of empty
-        # strings.
-        if q > 0
-            if q != n
-                throw(ArgumentError("Invalid number of Row Headers"))
-            end
-            rows = RowHeader
+########################################################################
+#################### Merging and Concatenating #########################
+########################################################################
+
+function vcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
+
+    # Row Indices stay the same except within the highest group, where
+    # they need to be shifted up in order to keep the index unique
+    shift       =   maximum(get_idx(t1.row_index, 1)) -
+                    minimum(get_idx(t2.row_index, 1)) + 1
+    new_index   = map(t2.row_index) do idx
+        i1 = idx.idx[1] + shift
+        new_idx = tuple(i1, idx.idx[2:end]...)
+        return update_index(idx, new_idx)
+    end
+
+    new_columns = deepcopy(t2.columns)
+    for col in new_columns
+        for (idx, new_idx) in zip(t2.row_index, new_index)
+            col[new_idx] = pop!(col.data, idx)
+        end
+    end
+
+    row_index = vcat(t1.row_index, new_index)
+
+    # Columns
+    col_index = deepcopy(t1.col_index)
+    columns   = deepcopy(t1.columns)
+    for (i, idx) in enumerate(t2.col_index)
+
+        # Figure out where to insert the column
+        new_idx, s = insert_index!(col_index, idx)
+
+        # It might be a new column
+        if s > length(columns)
+            push!(columns, new_columns[i])
+        # If not, we need to move all the data over
         else
-            rows = ["" for i=1:n]
-        end
-
-        # If the col headers are not empty, check that there's one for
-        # every column of sub-tables.  Otherwise, use a vector of empty
-        # strings.
-        if r > 0
-            if r != m
-                throw(ArgumentError("Invalid number of Column Headers"))
+            for (key, value) in new_columns[i].data
+                columns[s].data[key] = value
             end
-            cols = ColHeader
+        end
+    end
+
+
+    return IndexedTable(columns, row_index, col_index)
+
+end
+
+function hcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
+
+    # Don't pass changes up the stack
+    # t1 = deepcopy(t1)
+    # t2 = deepcopy(t2)
+
+    # Column Indices stay the same except within the highest group,
+    # where they need to be shifted up in order to keep the index unique
+    shift       =   maximum(get_idx(t1.col_index, 1)) -
+                    minimum(get_idx(t2.col_index, 1)) + 1
+    new_index   = map(t2.col_index) do idx
+        i1 = idx.idx[1] + shift
+        return update_index(idx, tuple(i1, idx.idx[2:end]...))
+    end
+    col_index   = vcat(t1.col_index, new_index)
+
+
+    # Row indices are merged in (inserted) one at a time, maintaining
+    # strict insertion order in all index levels but the lowest one
+    new_columns = deepcopy(t2.columns)
+    row_index   = t1.row_index
+    for idx in t2.row_index
+
+        # Insert the index and recover the new_index and the required
+        # insertion point
+        new_idx, s = insert_index!(row_index, idx)
+
+        # Rename the old indexes to the new ones
+        for col in new_columns
+            val          = pop!(col.data, idx)
+            col[new_idx] = val
+        end
+    end
+
+    # Remap the internal column headers to keep them consistent
+    old_new     = Dict(Pair.(t2.col_index, new_index))
+    for col in new_columns
+        col.header = old_new[col.header]
+    end
+
+    # Now, we're ready to append the columns together.
+    columns     = vcat(t1.columns, new_columns)
+
+    return IndexedTable(columns, row_index, col_index)
+end
+
+hcat(tables::Vararg{IndexedTable{N,M}, K}) where {N,M,K}= reduce(hcat, tables)
+vcat(tables::Vararg{IndexedTable{N,M}, K}) where {N,M,K}= reduce(vcat, tables)
+
+
+
+########################################################################
+#################### General Indexing ##################################
+########################################################################
+
+function insert_index!(index::Index{N}, idx::TableIndex{N}) where N
+
+    range = searchsorted(index, idx, lt=isless_group)
+
+    # If it's empty, insert it in the right position
+    if isempty(range)
+        insert!(index, range.start, idx)
+        return idx, range.start
+
+    # Otherwise, check to see whether or not the last level matches
+    # already
+    else
+
+        N_index = get_idx(index[range], N)
+        N_names = get_name(index[range], N)
+
+        # If it does, then we don't have to do anything except check
+        # that the strings are right
+        if idx.name[N] in N_names
+            loc = find(N_names .== idx.name[N])[1]
+
+            # if ! (N_names[loc] == idx.name)
+            #     throw(error(replace("""
+            #     The index is screwed up.  Have you been messing around
+            #     with the internals?  Don't do that.  Things need to be
+            #     sorted properly for this to work.
+            #     """, "\n", " ")))
+            # end
+
+            # Here's the new index
+            new_idx = update_index(idx, tuple(idx.idx[1:N-1]..., loc))
+            return new_idx, range.start + loc - 1
         else
-            cols = ["" for i=1:m]
+            # Otherwise, it's not there so we need to insert it into the
+            # index, and its last integer level should be one higher
+            # than all the others
+            new_idx = update_index(idx, tuple(idx.idx[1:N-1]...,
+                                              maximum(N_index)+1))
+
+            insert!(index, range.stop+1, new_idx)
+            return new_idx, range.stop + 1
         end
-
-        # Check that all the tables have the same depth
-        if !(allequal(depth.(t)))
-            msg = "All sub-tables must have the same depth"
-            throw(ArgumentError(msg))
-        end
-
-        # Construct the composite table.
-        return new(t, cols, rows)
     end
 end
 
-CTable = CompositeTable
-function CompositeTable(t::Table,
-                        ColHeader=String[],
-                        RowHeader=String[])
-    return CTable([t], ColHeader, RowHeader)
+get_idx(index)               = map(x->x.idx, index)
+get_idx(index, level::Int)   = map(x->x.idx[level], index)
+get_name(index)              = map(x->x.name, index)
+get_name(index, level::Int)  = map(x->x.name[level], index)
+
+function find_level(index::Index{N}, idx::Idx{N}, level::Int) where N
+    range = searchsorted(get_level(index, level), idx[level])
+    return range
 end
 
-CompositeTable(t::CTable) = t
-Table(t::CTable) = t
-
-
-size(t::CTable, args...) = size(t.Tables, args...)
-
-########################################################################
-#################### Join Methods ######################################
-########################################################################
-
-allequal(x) = all(y->y==x[1], x)
-
-function join(t1::Table, t2::Table)
-    t1 = deepcopy(t1)
-    for col in t2.Columns
-        push!(t1, col)
-    end
-    return t1
-end
-
-function join(t1::CTable, t2::CTable)
-    if (col_depth(t1) > 1) | (col_depth(t2) > 1)
-        msg = "Cannot join tables more than 1 column layer deep. "
-        msg *= "Try breaking it up into smaller pieces"
-        throw(ArgumentError(msg))
-    end
-
-    if (row_depth(t1) > 2) | (row_depth(t2) > 2)
-        msg = "Cannot join tables more than 2 row layers deep. "
-        msg *= "Try breaking it up into smaller pieces"
-        throw(ArgumentError(msg))
-    end
-
-    if t1.RowHeader != t2.RowHeader
-        msg  = "Cannot join Composite Tables that don't have "
-        msg *= "the same row-shape. "
-        msg *= "Try breaking it up into smaller pieces"
-        throw(ArgumentError(msg))
-    end
-
-    if t1.ColHeader != t2.ColHeader
-        ColHeader = [""]
-        warn("Dropping Inconsistent ColHeader names.")
-    else
-        ColHeader = t1.ColHeader
-    end
-
-    # Do the join row-block by row-block
-    joined = [join(t1[i,1], t2[i,1]) for i=1:size(t1, 1)]
-
-    return CompositeTable(joined, t1.ColHeader, t2.RowHeader)
-end
-
-function join(t1::CTable,
-              tables::Vararg{CTable, 2})
-    return join(join(t1, tables[1]), tables[2])
-end
-
-function join(t1::CTable,
-              tables::Vararg{CTable, N}) where N
-    return join(join(t1, tables[1]), tables[2:end])
-end
-
-########################################################################
-#################### Traversing Methods ################################
-########################################################################
-
-function depth(t::CompositeTable)::Int
-    d = maximum(depth.(t.Tables))
-    return d + 1
-end
-
-function col_depth(t::CompositeTable)::Int
-
-    # Recurse through the sub-tables
-    d = maximum(col_depth.(t.Tables))
-
-    # Add in the depth contribution of the current table
-    if length(t.ColHeader) == 1
-        return 0 + d
-    else
-        return 1 + d
+function add_level(index::Vector{TableIndex{N}}, level,
+                   name::Printable="") where N
+    return map(index) do idx
+        return TableIndex(tuple(level, idx.idx...),
+                          tuple(Symbol(name), idx.name...))
     end
 end
-
-function row_depth(t::CompositeTable)::Int
-    # Recurse through the sub-tables
-    d = maximum(row_depth.(t.Tables))
-
-    # Add in the depth contribution of the current table
-    if length(t.RowHeader) == 1
-        return 0 + d
-    else
-        return 1 + d
-    end
-end
-
-depth(t::Table) = 1
-col_depth(t::Table) = 1
-row_depth(t::Table) = 1
-
-getindex(t::CTable, idx1, idx2) = t.Tables[idx1, idx2]
 
 """
 ```
-row_index(t::TexTable)
+add_row_level(t::IndexedTable, level::Int, name::$Printable="")
 ```
-This function returns a vector of NTuples corresponding to the fully
-specified row multi-index of the composite table.  Each Tuple will have
-string entries and have length `row_depth(t)`
+Add's a new level to the row index with the given `level` for the
+integer component of the index, and `name` for the symbol component
 """
-function row_index(t::CompositeTable)
-    headers = []
-    for (i, row_label) in enumerate(t.RowHeader)
-        for (j, col_label) in enumerate(t.ColHeader)
-            # Extract the headers for the subtable recursively
-            sub_headers = row_index(t[i,j])
+function add_row_level(t::IndexedTable{N,M},
+                       level::Int, name::Printable="") where {N,M}
 
-            # Insert them into the list of headers for this section in
-            # the order we encounter them.
-            for sub_header in sub_headers
+    new_rows = add_level(t.row_index, level, name)
 
-                # Represent empty with integer (not type stable at all,
-                # but it doesn't matter since this code never needs to
-                # be performant)
-                rlab = i
+    old_new  = Dict(Pair.(t.row_index, new_rows)...)
 
-                # Make our new header
-                new_header = tuple(rlab, sub_header...)
-
-                # Push it to the list of row headers if we haven't
-                # already encountered it encountered it
-                if !(new_header in headers)
-                    push!(headers, new_header)
-                end
-            end
+    new_columns = []
+    for col in t.columns
+        data = TableDict{N+1, FormattedNumber}()
+        for (key, value) in col.data
+            data[old_new[key]] = value
         end
+        push!(new_colums, TableCol(col.header, data))
     end
-    return headers
-end
 
-row_index(t::Table) = tuple.(1:length(t.RowHeader))
+    return IndexedTable(new_columns, new_rows, t.col_index)
+end
 
 """
 ```
-col_index(t::TexTable)
+add_col_level(t::IndexedTable, level::Int, name::$Printable="")
 ```
-This function returns a vector of NTuples corresponding to the fully
-specified column multi-index of the composite table.  Each Tuple will
-have string entries and have length `col_depth(t)`
+Add's a new level to the column index with the given `level` for the
+integer component of the index, and `name` for the symbol component
 """
-function col_index(t::CompositeTable)
-    headers = []
-    for (j, col_label) in enumerate(t.ColHeader)
-        for (i, row_label) in enumerate(t.RowHeader)
-            # Extract the headers for the subtable recursively
-            sub_headers = col_index(t[i,j])
+function add_col_level(t::IndexedTable{N,M},
+                       level::Int, name::Printable="") where {N,M}
 
-            # Insert them into the list of headers for this section in
-            # the order we encounter them.
-            for sub_header in sub_headers
+    new_cols = add_level(t.col_index, level, name)
+    old_new  = Dict(Pair.(t.col_index, new_cols))
 
-                # Represent empty with integer (not type stable at all,
-                # but it doesn't matter since this code never needs to
-                # be performant)
-                clab = j
-
-                # Make our new header
-                new_header = tuple(clab, sub_header...)
-
-                # Push it to the list of col headers if we haven't
-                # already encountered it encountered it
-                if !(new_header in headers)
-                    push!(headers, new_header)
-                end
-            end
-        end
-    end
-    return headers
-end
-
-col_index(t::Table) = tuple.(1:length(t.ColHeader))
-
-get_col(t::CTable, col::Tuple)  = begin
-    sub_table = map(t[:, col[1]]) do sub
-        trim(get_col(sub, col[2:end]))
+    new_columns = []
+    for col in t.columns
+        push!(new_columns, TableCol(old_new[col.header],
+                                    col.data))
     end
 
-    return sub_table
+    return IndexedTable(new_columns, t.row_index, new_cols)
 end
 
-function trim(x::Array)
-    if length(x) == 1
-        return trim(x[1])
+########################################################################
+#################### Access Methods ####################################
+########################################################################
+
+Indexable{N}  = Union{TableIndex{N}, Name{N}, Idx{N}}
+Idexable1D    = Union{Printable, Integer}
+
+function row_loc(t::IndexedTable{N,M}, idx::Indexable{N}) where {N,M}
+    locate(t.row_index, idx)
+end
+
+function col_loc(t::IndexedTable{N,M}, idx::Indexable{N}) where {N,M}
+    locate(t.col_index, idx)
+end
+
+function loc(t::IndexedTable{N,M},
+             ridx::Indexable{N},
+             cidx::Indexable{M}) where {N,M}
+
+    rloc = locate(t.row_index, ridx)
+    cloc = locate(t.col_index, cidx)
+
+    if isempty(rloc) | isempty(cloc)
+        throw(KeyError("key ($row, $col) not found"))
+    elseif length(rloc) > 1
+        throw(KeyError("""
+           $row does not uniquely identify a row
+           """))
+    elseif length(cloc) > 1
+        throw(KeyError("""
+            $col does not uniquely identify a column
+            """))
     else
-        return x
+        return rloc[1], cloc[1]
     end
 end
 
-trim(x) = x
-
-
-
-########################################################################
-#################### Printing Methods ##################################
-########################################################################
-
-function get_length(t::CTable, col::Tuple)
-    sub = get_col(t, col)
-    l   = maximum(get_length.(sub))
+function locate(index::Vector{TableIndex{N}},idx::TableIndex{N}) where N
+    return findin(idx, index)
 end
 
-function rowheader_length(t::CTable)
-    rstr = row_index(t)
-    N    = depth(t)
-
-    l    = 0
-    for i=1:N-1
-        l += map(rstr) do r
-
-
-        end
-
-    end
-
-
+function locate(index::Vector{TableIndex{N}}, idx::Name{N}) where N
+    return find(x->x.name == idx, index)
 end
 
-function head(t::CTable)
+function locate(index::Vector{TableIndex{N}}, idx::Idx{N}) where N
+    return find(x->x.idx == idx, index)
+end
 
-    N = depth(t)
+function getindex(t::IndexedTable{N,M}, row::Indexable{N},
+                  col::Indexable{M}) where {N,M}
+    rloc, cloc = loc(t, row, col)
+    return t.columns[cloc][t.row_index[rloc]]
+end
 
-    ridx = row_index(t)
+function setindex!(t::IndexedTable, args...)
+    throw(error("setindex! not implemented yet"))
+end
 
+# Fallback Methods
+function getindex(t::IndexedTable, row, col)
+    return t[tuple(row), tuple(col)]
+end
 
+function getindex(t::IndexedTable, row::Indexable, col)
+    return t[row, tuple(col)]
+end
 
+function getindex(t::IndexedTable, row, col::Indexable)
+    return t[tuple(row), col]
 end
