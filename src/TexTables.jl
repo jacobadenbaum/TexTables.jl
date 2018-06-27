@@ -18,8 +18,7 @@ include("FormattedNumbers.jl")
 include("TableCol.jl")
 include("CompositeTable.jl")
 include("Printing.jl")
-
-# include("TableFull.jl")
-# include("StatsModelsInterface.jl")
+include("Public.jl")
+include("StatsModelsInterface.jl")
 
 end # module
