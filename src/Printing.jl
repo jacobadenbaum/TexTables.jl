@@ -26,13 +26,13 @@ function rowheader_length(t::IndexedTable{N,M}, level::Int) where {N,M}
     return maximum(lengths)
 end
 
-function rowheader_length(t::IndexedTable{N,M}) where {N,M}
+function rowheader_length(t::IndexedTable{N,M}; pad=3) where {N,M}
     # Offset it by one since there's no leading space
-    l = -1
+    l = -pad
     for i=1:N
         lh = rowheader_length(t, i)
         l += lh
-        l += lh > 0 ? 3 : 0
+        l += lh > 0 ? pad : 0
     end
     return l
 end
@@ -84,7 +84,7 @@ function head(t::IndexedTable{N,M}) where {N,M}
         # Check that this level has nonempty names
         names = get_name(t.col_index, i)
         if !all(isempty.(string.(names)))
-            l = rowheader_length(t)
+            l = rowheader_length(t, pad=1)
             output *= format("{:$l} ", "")
 
             # Now start handling the headers:
@@ -131,7 +131,7 @@ function body(t::IndexedTable{N,M}) where {N,M}
 
     # Get the row-header length
     lh = [rowheader_length(t,i) for i=1:N]
-    l  = rowheader_length(t)
+    l  = rowheader_length(t, pad=1)
     for (i, key)  in enumerate(t.row_index)
         row = t[key]
         if i > 1
@@ -157,9 +157,12 @@ function body(t::IndexedTable{N,M}) where {N,M}
             end
 
             # Put in the appropriate output
-            name    = print_flag ? string(key.name[j]) : ""
-            pad     = lh[j] > 0 ? 1 : 0
-            output *= format("{:>$(lh[j] + pad)} ", name)
+            name    =   string(key.name[j])
+            output *=   print_flag & !empty_row(t,j)  ?
+                        format("{:>$(lh[j])} ", name) :
+                        ! empty_row(t, j)             ?
+                        format("{:>$(lh[j])} ", "")   :
+                        ""
         end
 
         # Print the first line
@@ -243,7 +246,7 @@ function tex_head(t::IndexedTable{N,M}) where {N,M}
     end
 
     # Add Column Names
-    output = "\\begin{tabular}{$align}\n\\toprule \n"
+    output = "\\begin{tabular}{$align}\n\\toprule\n"
 
     for i=1:M
         # Check that this level has nonempty names
@@ -286,10 +289,10 @@ function tex_head(t::IndexedTable{N,M}) where {N,M}
                 end
             end
             if i < M
-                output *= "\\\\ \n"
+                output *= "\\\\\n"
             else
 
-                output *= "\\\\ \\hline \n"
+                output *= "\\\\ \\hline\n"
             end
         end
     end
@@ -314,9 +317,12 @@ function tex_body(t::IndexedTable{N,M}) where {N,M}
             if new_group(idx2, key, N-1)
                 c1 = nonempty_rows(t) + 1
                 c2 = c1 + length(t.columns) - 1
-                output *= "\\\\ \\cline{$c1-$c2} \n"
+                cline = "\\cline{$c1-$c2}"
+                hline = "\\hline"
+                line  = hline
+                output *= "\\\\ $line\n"
             else
-                output *= "\\\\ \n"
+                output *= "\\\\\n"
             end
         end
 
@@ -332,9 +338,16 @@ function tex_body(t::IndexedTable{N,M}) where {N,M}
             end
 
             # Put in the appropriate output
-            name    = print_flag ? string(key.name[j]) : ""
-            pad     = lh[j] > 0 ? 1 : 0
-            output *= format("{:>$(lh[j] + pad)} ", name)
+            name    =   string(key.name[j])
+            output *=   print_flag & !empty_row(t,j)  ?
+                        format("{:>$(lh[j])} ", name) :
+                        ! empty_row(t, j)             ?
+                        format("{:>$(lh[j]+2)} ", "")   :
+                        ""
+            if (j < N) & print_flag & !empty_row(t,j)
+                output *= "\& "
+            end
+
         end
 
         # Print the first line
@@ -347,7 +360,7 @@ function tex_body(t::IndexedTable{N,M}) where {N,M}
         # Only print standard errors if it's nonempty
         if !all(isempty.(strip.(second)))
             # New line
-            output *= "\\\\ \n"
+            output *= "\\\\\n"
 
             # Print Standard Errors
             output *= format("{:>$l} ", " ")
@@ -360,7 +373,7 @@ function tex_body(t::IndexedTable{N,M}) where {N,M}
     return output
 end
 
-tex_foot(t::IndexedTable) = "\n\\bottomrule \n\\end{tabular}"
+tex_foot(t::IndexedTable) = "\\\\\n\\bottomrule\n\\end{tabular}"
 
 function tex(t::IndexedTable)
     return prod([tex_head(t), tex_body(t), tex_foot(t)])

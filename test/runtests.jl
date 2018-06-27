@@ -53,5 +53,4 @@ c3 = append_table(t3, t6)
                     key10 & -0.517 &        & -0.517  \\\\
                           &        &        & (1.226) \\\\
                     \\bottomrule
-                    \\end{tabular}
-                    """
+                    \\end{tabular}"""
