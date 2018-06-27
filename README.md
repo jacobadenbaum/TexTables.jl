@@ -139,9 +139,6 @@ julia> reg_table = hcat(Table("(1)", m1),
           N | 30       | 30       | 30       | 30      | 30
       $R^2$ | 0.348    | 0.451    | 0.459    | 0.715   | 0.715
 ```
-As you can see, the summary statistics are kept in a separate row-block
-while the columns are being merged together.  In the next section, we
-will see how to construct custom tables that have this property.
 
 Currently, `TexTables` works with several standard regression packages
 in the `StatsModels` family to construct custom coefficient tables.
@@ -151,14 +148,82 @@ how best to proceed on extending it to more model types.
 I think that I may spin these off into a "formulas" package at some
 point in the future.
 
+## Row and Column Blocks
+
+As you can see, the summary statistics are kept in a separate row-block
+while the columns are being merged together. We can do this either with
+unnamed groups (like in the previous example), or with named groups that
+will be visible in the table itself.
+
+Suppose that our first 3 regressions needed to be visually grouped
+together under a single heading, and the last two were separate.  We
+could instead construct each group separately and then combine them
+together with the `join_table` function:
+```julia
+group1 = hcat(  Table("(1)", m1),
+                Table("(2)", m2),
+                Table("(3)", m3))
+group2 = hcat(  Table("(1)", m4),
+                Table("(2)", m5))
+grouped_table = join_table( "Group 1"=>group1,
+                            "Group 2"=>group2)
+```
+This will display as:
+```julia
+julia> grouped_table = join_table( "Group 1"=>group1,
+                                   "Group 2"=>group2)
+            |            Group 1             |      Group 2
+            |   (1)    |   (2)    |   (3)    |   (1)   |   (2)
+------------------------------------------------------------------
+(Intercept) | 19.978   | 15.809   | 14.167   | 11.834  | 11.011
+            | (11.688) | (11.084) | (11.519) | (8.535) | (11.704)
+     Raises | 0.691    | 0.379    | 0.352    | -0.026  | -0.033
+            | (0.179)  | (0.217)  | (0.224)  | (0.184) | (0.202)
+   Learning |          | 0.432    | 0.394    | 0.246   | 0.249
+            |          | (0.193)  | (0.204)  | (0.154) | (0.160)
+ Privileges |          |          | 0.105    | -0.103  | -0.104
+            |          |          | (0.168)  | (0.132) | (0.135)
+ Complaints |          |          |          | 0.691   | 0.692
+            |          |          |          | (0.146) | (0.149)
+   Critical |          |          |          |         | 0.015
+            |          |          |          |         | (0.147)
+------------------------------------------------------------------
+          N | 30       | 30       | 30       | 30      | 30
+      $R^2$ | 0.348    | 0.451    | 0.459    | 0.715   | 0.715
+```
+And in latex, the group labels will be displayed with `\multicolumn`
+commands:
+```latex
+\begin{tabular}{r|ccc|cc}
+\toprule
+            & \multicolumn{3}{c}{Group 1}& \multicolumn{2}{c}{Group 2}\\
+            & (1)      & (2)      & (3)      & (1)     & (2)      \\ \hline
+(Intercept) & 19.978   & 15.809   & 14.167   & 11.834  & 11.011   \\
+            & (11.688) & (11.084) & (11.519) & (8.535) & (11.704) \\
+     Raises & 0.691    & 0.379    & 0.352    & -0.026  & -0.033   \\
+            & (0.179)  & (0.217)  & (0.224)  & (0.184) & (0.202)  \\
+   Learning &          & 0.432    & 0.394    & 0.246   & 0.249    \\
+            &          & (0.193)  & (0.204)  & (0.154) & (0.160)  \\
+ Privileges &          &          & 0.105    & -0.103  & -0.104   \\
+            &          &          & (0.168)  & (0.132) & (0.135)  \\
+ Complaints &          &          &          & 0.691   & 0.692    \\
+            &          &          &          & (0.146) & (0.149)  \\
+   Critical &          &          &          &         & 0.015    \\
+            &          &          &          &         & (0.147)  \\ \hline
+          N & 30       & 30       & 30       & 30      & 30       \\
+      $R^2$ & 0.348    & 0.451    & 0.459    & 0.715   & 0.715    \\
+\bottomrule
+\end{tabular}
+```
+The vertical analogue of `join_table` is the function `append_table`.
+Both will also accept the table objects as arguments instead of pairs if
+you want to construct the row/column groups without adding a visible
+multi-index.
+
 # Advanced Usage
 
 These sections are for advanced users who are interested in fine-tuning
 their own custom tables or integrating `TexTables` into their packages.
-
-## Row and Column Blocks
-
-## Multiindexing
 
 ## A word of caution about merging tables
 
