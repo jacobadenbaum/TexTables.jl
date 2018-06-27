@@ -1,5 +1,5 @@
 using DataStructures
-import Base: isless, isequal
+import Base: isless, ==
 
 Idx{N}      = NTuple{N, Int}
 Name{N}     = NTuple{N, Symbol}
@@ -84,6 +84,13 @@ function TableCol(header::Printable, kv::TableDict{N,T}) where
                     convert(TableDict{N, FormattedNumber}, kv))
 end
 
+# Columns are equal if they are the same entry all the way down
+==(t1::TableCol, t2::TableCol) = begin
+    t1.header == t2.header || return false
+    t1.data   == t2.data   || return false
+    return true
+end
+
 ########################################################################
 #################### Constructors ######################################
 ########################################################################
@@ -92,7 +99,7 @@ function TableCol(header::Printable, kv::Associative)
     pairs = collect(TableIndex(i, key)=>FormattedNumber(value)
                     for (i, (key, value)) in enumerate(kv))
     TableCol(header,
-             OrderedDict(pairs...))
+             OrderedDict{TableIndex{1}, FormattedNumber}(pairs))
 end
 
 function TableCol(header, kv::Associative, kp::Associative)
