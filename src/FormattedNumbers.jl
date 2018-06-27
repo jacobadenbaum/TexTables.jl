@@ -3,7 +3,7 @@ function default_fmt(T::Type{S}) where {S}
 end
 
 macro fmt(ex)
-    
+
     msg = "Syntax is: @fmt T = fmtstring"
     @assert(ex.head == :(=), msg)
     @assert(length(ex.args) == 2, msg)
@@ -12,9 +12,9 @@ macro fmt(ex)
 
     ex1 = ex.args[1]
     ex2 = ex.args[2]
-    
+
     q = quote
-        Tables.default_fmt(T::Type{S}) where {S <: $ex1} = $ex2
+        TexTables.default_fmt(T::Type{S}) where {S <: $ex1} = $ex2
     end
     return q
 end
@@ -39,7 +39,7 @@ function fixed_or_scientific(val, format)
             else
                 r = "f"
             end
-            
+
             if ismatch(_fmt_spec_g, format)
                 return replace(format, _fmt_spec_g, lowercase(r))
             else
@@ -79,20 +79,20 @@ function FormattedNumber(val::T, format::String=default_fmt(T)) where T
     return FNum(val, format)
 end
 
-function FormattedNumber(val::T, se::S, 
+function FormattedNumber(val::T, se::S,
              format::String=default_fmt(T),
-             format_se::String=default_fmt(S)) where 
+             format_se::String=default_fmt(S)) where
              {T<:AbstractFloat, S <: AbstractFloat}
-    se2 = Float64(se) 
+    se2 = Float64(se)
     newval, newse = promote(val, se)
     return FNumSE(newval, newse, format, format_se)
 end
 
 function FormattedNumber(val::T, se::S,
                          format::String=default_fmt(T),
-                         format_se::String=default_fmt(S)) where 
+                         format_se::String=default_fmt(S)) where
                          {T, S<:AbstractFloat}
-    se2 = Float64(se) 
+    se2 = Float64(se)
     @assert(isnan(se), "Cannot have non-NaN Standard Errors for $T")
     return FNumSE(val, se, format, format_se)
 end
@@ -103,7 +103,7 @@ FormattedNumber(x::FormattedNumber) = x
 Base.show(io::IO, x::FNum) = print(io, format(x.format, x.val))
 Base.show(io::IO, x::FNumSE)= begin
     if isnan(x.se)
-        print(io, value(x)) 
+        print(io, value(x))
     else
         str = string(value(x), " ", se(x))
         print(io, str)
@@ -115,7 +115,7 @@ Base.convert(::Type{FNumSE}, x::FNum) = FormattedNumber(x.val, NaN)
 Base.promote_rule(::Type{FNumSE{T}}, ::Type{FNum{S}}) where {T,S} = FNumSE
 
 
-value(x::FormattedNumber)   = format(x.format, x.val) 
-se(x::FNumSE)               = format("($(x.format_se))", x.se) 
+value(x::FormattedNumber)   = format(x.format, x.val)
+se(x::FNumSE)               = format("($(x.format_se))", x.se)
 se(x::FNum)                 = ""
 

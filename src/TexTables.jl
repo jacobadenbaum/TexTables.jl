@@ -1,4 +1,4 @@
-module Tables
+module TexTables
 
 # package code goes here
 # Nice string formattting

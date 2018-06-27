@@ -1,5 +1,5 @@
 using Revise
-using Tables
+using TexTables
 using Base.Test
 
 # Baseline check
@@ -16,7 +16,7 @@ t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes")) |> IndexedTable
 t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))  |> IndexedTable
 t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes")) |> IndexedTable
 
-# Build the table one way
+# Build the table two different ways
 sub_tab2= hcat(t4, t5, t6)
 tab     = vcat(sub_tab1, sub_tab2)
 tab2    = [t1 t2 t3
