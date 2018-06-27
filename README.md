@@ -3,8 +3,9 @@
 The TexTable package provides an easy way for Julia users to quickly
 build well-formated and publication-ready ASCII and LaTeX tables from a
 variety of different data structures.  It allows the user to easily
-concatenate tables along either dimension (horizontally or vertically)
-while preserving any important block structure in the tables.
+build complex tables from small, modular components in an object
+oriented fashion, as well as providing some methods for easily
+constructing common tables from regression output.
 
 This package is still in beta.  I'm quite happy with it and I've been
 using it (or some iteration of it) in my own work for quite a while.
