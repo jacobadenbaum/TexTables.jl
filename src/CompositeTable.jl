@@ -3,7 +3,7 @@ This code provides the framework to stich together two separate tables
 (either concatenating them horizontally or vertically).
 =#
 
-import Base: join, getindex, size, hcat, vcat
+import Base: getindex, size, hcat, vcat, convert, promote_rule
 
 mutable struct IndexedTable{N, M}
     columns::Vector
@@ -22,7 +22,10 @@ end
 #################### Merging and Concatenating #########################
 ########################################################################
 
-function vcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
+function vcat(t1::IndexedTable, t2::IndexedTable)
+
+    # Promote to the same dimensions
+    t1, t2 = promote(t1, t2)
 
     # Row Indices stay the same except within the highest group, where
     # they need to be shifted up in order to keep the index unique
@@ -37,7 +40,9 @@ function vcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
     new_columns = deepcopy(t2.columns)
     for col in new_columns
         for (idx, new_idx) in zip(t2.row_index, new_index)
-            col[new_idx] = pop!(col.data, idx)
+            if haskey(col.data, idx)
+                col[new_idx] = pop!(col.data, idx)
+            end
         end
     end
 
@@ -67,11 +72,10 @@ function vcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
 
 end
 
-function hcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
+function hcat(t1::IndexedTable, t2::IndexedTable)
 
-    # Don't pass changes up the stack
-    # t1 = deepcopy(t1)
-    # t2 = deepcopy(t2)
+    # Promote to the same dimensions
+    t1, t2 = promote(t1, t2)
 
     # Column Indices stay the same except within the highest group,
     # where they need to be shifted up in order to keep the index unique
@@ -96,8 +100,10 @@ function hcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
 
         # Rename the old indexes to the new ones
         for col in new_columns
-            val          = pop!(col.data, idx)
-            col[new_idx] = val
+            if haskey(col.data, idx)
+                val          = pop!(col.data, idx)
+                col[new_idx] = val
+            end
         end
     end
 
@@ -109,14 +115,148 @@ function hcat(t1::IndexedTable{N, M}, t2::IndexedTable{N,M}) where {N,M}
 
     # Now, we're ready to append the columns together.
     columns     = vcat(t1.columns, new_columns)
-
     return IndexedTable(columns, row_index, col_index)
 end
 
 hcat(tables::Vararg{IndexedTable{N,M}, K}) where {N,M,K}= reduce(hcat, tables)
 vcat(tables::Vararg{IndexedTable{N,M}, K}) where {N,M,K}= reduce(vcat, tables)
 
+join_table(t1::IndexedTable) = t1
 
+function join_table(t1::IndexedTable, t2::IndexedTable)
+
+    # Promote to the same dimensions
+    t1, t2 = promote(t1, t2)
+
+    t1_new = add_col_level(t1, 1)
+    t2_new = add_col_level(t2, 2)
+
+    return hcat(t1_new, t2_new)
+end
+
+function join_table(t1::IndexedTable, t2::IndexedTable,
+                    t3::IndexedTable, args...)
+    return join_table(join_table(t1,t2), t3, args...)
+end
+
+# Joining on Pairs
+function join_table(p1::Pair{P1,T1}) where {P1 <: Printable,
+                                      T1 <: IndexedTable}
+    t1_new = add_col_level(p1.second, 1, p1.first)
+end
+
+function join_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
+    {P1 <: Printable, P2 <: Printable, T1 <: IndexedTable, T2<:IndexedTable}
+
+    t1, t2 = promote(p1.second, p2.second)
+
+    t1_new = add_col_level(t1, 1, p1.first)
+    t2_new = add_col_level(t2, 2, p2.first)
+
+    return hcat(t1_new, t2_new)
+end
+
+function join_table(p1::Pair{P1,T1},
+              p2::Pair{P2,T2},
+              p3::Pair{P3,T3}, args...) where
+                {P1 <: Printable, P2 <: Printable, P3<:Printable,
+                T1 <: IndexedTable, T2<:IndexedTable, T3<:IndexedTable}
+
+    return join_table(join_table(p1, p2), p3, args...)
+end
+
+join_table(t1::IndexedTable, p2::Pair{P2,T2}) where {P2, T2} = begin
+    join_table(t1, join_table(p2))
+end
+
+join_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
+    join_table(join_table(p2), t1)
+end
+
+# Appending
+append_table(t1::IndexedTable) = t1
+function append_table(t1::IndexedTable, t2::IndexedTable)
+
+    # Promote to the same dimensions
+    t1, t2 = promote(t1, t2)
+
+    t1_new = add_row_level(t1, 1)
+    t2_new = add_row_level(t2, 2)
+
+    return vcat(t1_new, t2_new)
+end
+
+function append_table(t1::IndexedTable, t2::IndexedTable,
+                    t3::IndexedTable, args...)
+    return append_table(append_table(t1,t2), t3, args...)
+end
+
+# Appending on Pairs
+function append_table(p1::Pair{P1,T1}) where {P1 <: Printable,
+                                      T1 <: IndexedTable}
+    t1_new = add_row_level(p1.second, 1, p1.first)
+end
+
+function append_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
+    {P1 <: Printable, P2 <: Printable, T1 <: IndexedTable, T2<:IndexedTable}
+
+    t1, t2 = promote(p1.second, p2.second)
+
+    t1_new = add_row_level(t1, 1, p1.first)
+    t2_new = add_row_level(t2, 2, p2.first)
+
+    return vcat(t1_new, t2_new)
+end
+
+function append_table(p1::Pair{P1,T1},
+              p2::Pair{P2,T2},
+              p3::Pair{P3,T3}, args...) where
+                {P1 <: Printable, P2 <: Printable, P3<:Printable,
+                T1 <: IndexedTable, T2<:IndexedTable, T3<:IndexedTable}
+
+    return append_table(append_table(p1, p2), p3, args...)
+end
+
+append_table(t1::IndexedTable, p2::Pair{P2,T2}) where {P2, T2} = begin
+    append_table(t1, append_table(p2))
+end
+
+append_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
+    append_table(append_table(p2), t1)
+end
+
+
+
+########################################################################
+#################### Conversion Between Dimensions #####################
+########################################################################
+
+function promote_rule(::Type{IndexedTable{N1,M1}},
+                      ::Type{IndexedTable{N2,M2}}) where
+                      {N1, M1, N2, M2}
+    N = max(N1, N2)
+    M = max(M1, M2)
+    return IndexedTable{N, M}
+end
+
+function convert(::Type{IndexedTable{N, M}}, t::IndexedTable{N0, M0}) where
+    {N,M,N0,M0}
+    if (N0 > N) | (M0 > M)
+        msg = """
+        Cannot convert IndexedTable{$N0,$M0} to IndexedTable{$N,$M}
+        """
+        throw(error(msg))
+    else
+        for i=1:N-N0
+            t = add_row_level(t, 1)
+        end
+
+        for i=1:M-M0
+            t = add_col_level(t, 1)
+        end
+    end
+    return t
+end
 
 ########################################################################
 #################### General Indexing ##################################
@@ -205,7 +345,7 @@ function add_row_level(t::IndexedTable{N,M},
         for (key, value) in col.data
             data[old_new[key]] = value
         end
-        push!(new_colums, TableCol(col.header, data))
+        push!(new_columns, TableCol(col.header, data))
     end
 
     return IndexedTable(new_columns, new_rows, t.col_index)

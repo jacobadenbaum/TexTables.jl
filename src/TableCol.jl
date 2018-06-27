@@ -52,9 +52,9 @@ function isless_group(index1::TableIndex{N}, index2::TableIndex{N},
         elseif index1.idx[i] > index2.idx[i]
             return false
         # Then check the strings
-        elseif index1.name[i] < index2.idx[i]
+        elseif index1.name[i] < index2.name[i]
             return true
-        elseif index1.name[i] > index2.idx[i]
+        elseif index1.name[i] > index2.name[i]
             return false
         end
     end

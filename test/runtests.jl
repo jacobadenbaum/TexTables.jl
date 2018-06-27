@@ -12,9 +12,9 @@ t3 = TableCol("test3", y, x, randn(10) .|> abs .|> sqrt) |> IndexedTable
 sub_tab1= hcat(t1, t2, t3)
 
 # Composite Table Checks
-t4 = TableCol("test" , Dict("Boolean"=>"Yes")) |> IndexedTable
-t5 = TableCol("test2", Dict("Boolean"=>"No"))  |> IndexedTable
-t6 = TableCol("test3", Dict("Boolean"=>"Yes")) |> IndexedTable
+t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes")) |> IndexedTable
+t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))  |> IndexedTable
+t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes")) |> IndexedTable
 
 # Build the table one way
 sub_tab2= hcat(t4, t5, t6)
@@ -23,6 +23,9 @@ tab2    = [t1 t2 t3
            t4 t5 t6]
 @test sprint(show, tab) == sprint(show, tab2)
 
+c1 = append_table(t1, t4)
+c2 = append_table(t2, t5)
+c3 = append_table(t3, t6)
 
 
 @test tex(sub_tab1) == """

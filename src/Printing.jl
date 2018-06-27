@@ -30,7 +30,9 @@ function rowheader_length(t::IndexedTable{N,M}) where {N,M}
     # Offset it by one since there's no leading space
     l = -1
     for i=1:N
-        l += rowheader_length(t, i) + 3
+        lh = rowheader_length(t, i)
+        l += lh
+        l += lh > 0 ? 3 : 0
     end
     return l
 end
@@ -42,41 +44,125 @@ end
 ########################################################################
 #################### REPL Output #######################################
 ########################################################################
-function head(t::IndexedTable{1,1})
+
+function new_group(idx1, idx2, level::Int)
+
+    # Terminal case
+    level == 0 && return false
+
+    # In other levels, recurse backwards through the levels -- short
+    # circuiting if we find any level where we're switching to a new
+    # group
+    return new_group(idx1, idx2, level-1) || begin
+        same_num    = idx1.idx[level]  == idx2.idx[level]
+        same_name   = idx1.name[level] == idx2.name[level]
+        return (!same_num) | (!same_name)
+    end
+end
+
+function center(str::String, width::Int)
+
+    l = length(str)
+    if l > width
+        return str
+    else
+        k   = div(width - l, 2)
+        str = format("{:>$(l + k)}", str)
+        str = format("{:<$width}", str)
+        return str
+    end
+end
+
+center(str::Symbol, width::Int) = center(string(str), width)
+
+function head(t::IndexedTable{N,M}) where {N,M}
 
     # Add Column Names
     output = ""
 
-    l = rowheader_length(t)
-    output *= format("{:$l} ", "")
-    for col in t.columns
-        l = get_length(col)
-        output *= "| $(format("{:$l}", string(col.header.name[1]))) "
+    for i=1:M
+        # Check that this level has nonempty names
+        names = get_name(t.col_index, i)
+        if !all(isempty.(string.(names)))
+            l = rowheader_length(t)
+            output *= format("{:$l} ", "")
+
+            # Now start handling the headers:
+            l = 0
+
+            for (j, col) in enumerate(t.columns)
+                # Add this column's length in
+                l = l + get_length(col) + 3
+
+                if j < length(t.columns)
+                    # Check whether or not we're moving to a new column
+                    # group on the next column
+                    idx1        = t.col_index[j]
+                    idx2        = t.col_index[j+1]
+                    print_flag  = new_group(idx1, idx2, i)
+                else
+                    print_flag  = true
+                end
+
+                # If we are, print_flag the full header centered above its
+                # columns and move on
+                if print_flag
+                    output *= "|"
+                    output *= center(col.header.name[i], l-1)
+                    l = 0
+                end
+            end
+            output *= "\n"
+        end
     end
 
     # Add a line-break and a horizontal line
-    k = length(output)
-    output *= "\n"
+    k = maximum(length.(split(output, "\n")))
     output *= "-"^k
     output *= "\n"
 
     return output
 end
 
-function body(t::IndexedTable{1,1})
+function body(t::IndexedTable{N,M}) where {N,M}
 
     # Start the output string
     output = ""
 
     # Get the row-header length
-    l = rowheader_length(t)
-
-    for key in t.row_index
+    lh = [rowheader_length(t,i) for i=1:N]
+    l  = rowheader_length(t)
+    for (i, key)  in enumerate(t.row_index)
         row = t[key]
+        if i > 1
+            idx2 = t.row_index[i-1]
+
+            # If it's a new row-group, then print a horizontal line
+            if new_group(idx2, key, N-1)
+                k = maximum(length.(split(head(t), "\n")))
+                output *= "-"^k
+                output *= "\n"
+            end
+        end
+
+        print_flag = false
 
         # Print the name
+        for j=1:N
+            # Check if we're at a new linegroup
+            if i == 1
+                print_flag = true
+            else
+                print_flag = new_group(idx2, key, j)
+            end
 
-        output *= format("{:>$l} ", string(key.name[1] ))
+            # Put in the appropriate output
+            name    = print_flag ? string(key.name[j]) : ""
+            pad     = lh[j] > 0 ? 1 : 0
+            output *= format("{:>$(lh[j] + pad)} ", name)
+        end
+
+        # Print the first line
         second  = []
         for (val, se) in row
             output *= "| $val "
@@ -100,82 +186,188 @@ function body(t::IndexedTable{1,1})
     return output
 end
 
-show(io::IO, t::IndexedTable{1,1}) = print(io, head(t)*body(t))
+show(io::IO, t::IndexedTable{N,M}) where {N,M} = print(io, head(t)*body(t))
 ########################################################################
 #################### Latex Table Output ################################
 ########################################################################
 
-function tex_head(t::IndexedTable{1,1})
+function mc(cols, val="", align="|c|")
+    return "\\multicolumn{$cols}{$align}{$val}"
+end
+
+"""
+Count the number of non-empty row-index dimensions
+"""
+function nonempty_rows(t::IndexedTable{N,M}) where {N,M}
+    c = 0
+    for i=1:N
+        c += empty_row(t, i) ? 0 : 1
+    end
+    return c
+end
+
+"""
+Check whether the row index in dimension `i` is empty
+"""
+function empty_row(t::IndexedTable{N,M}, i::Int) where {N,M}
+    names = get_name(t.row_index, i)
+    return all(isempty.(string.(names)))
+end
+
+"""
+Check whether the col index in dimension `i` is empty
+"""
+function empty_col(t::IndexedTable{N,M}, i::Int) where {N,M}
+    names = get_name(t.col_index, i)
+    return all(isempty.(string.(names)))
+end
+
+function tex_head(t::IndexedTable{N,M}) where {N,M}
 
     # Make Alignment
-    align = "r|"
-    for col in t.Columns
+    align = ""
+    for i=1:N
+        align *= empty_row(t, i) ? "" : "r"
+    end
+    align *= "|"
+
+    for (i, col) in enumerate(t.columns)
         align *= "c"
+        if i < length(t.columns)
+            idx1 = t.col_index[i]
+            idx2 = t.col_index[i+1]
+            if new_group(idx1, idx2, M-1)
+                align *= "|"
+            end
+        end
     end
 
     # Add Column Names
     output = "\\begin{tabular}{$align}\n\\toprule \n"
 
-    l = rowheader_length(t)
-    output *= format("{:$l} ", "")
-    for col in t.Columns
-        l = get_length(col)
-        output *= "\& $(format("{:$l}", col.header)) "
+    for i=1:M
+        # Check that this level has nonempty names
+        if ! empty_col(t, i)
+            l = rowheader_length(t)
+            output *= format("{:$l} ", "")
+
+            # Now start handling the headers:
+            l = 0
+            c = 0
+
+            for (j, col) in enumerate(t.columns)
+                # Add this column's length in
+                l = l + get_length(col) + 2
+                c = c + 1
+
+                if j < length(t.columns)
+                    # Check whether or not we're moving to a new column
+                    # group on the next column
+                    idx1        = t.col_index[j]
+                    idx2        = t.col_index[j+1]
+                    print_flag  = new_group(idx1, idx2, i)
+                else
+                    print_flag  = true
+                end
+
+                # If we are, print_flag the full header centered above its
+                # columns and move on
+                if print_flag
+                    output *= "\& "
+                    name    = string(col.header.name[i])
+                    if c > 1
+                        output *= format("{:<$(l-1)}", mc(c, name))
+                    else
+                        output *= format("{:<$(l-1)}", name)
+                    end
+
+                    l = 0
+                    c = 0
+                end
+            end
+            if i < M
+                output *= "\\\\ \n"
+            else
+
+                output *= "\\\\ \\hline \n"
+            end
+        end
     end
 
-    # Add a line-break and a horizontal line
-    output *= "\\\\ \\hline \n"
-
     return output
-
 end
 
-function tex_body(t::IndexedTable{1,1})
+function tex_body(t::IndexedTable{N,M}) where {N,M}
 
     # Start the output string
     output = ""
 
     # Get the row-header length
-    l = rowheader_length(t)
-
-    for key in t.RowHeader
+    lh = [rowheader_length(t,i) for i=1:N]
+    l  = rowheader_length(t)
+    for (i, key)  in enumerate(t.row_index)
         row = t[key]
+        if i > 1
+            idx2 = t.row_index[i-1]
+
+            # If it's a new row-group, then print a horizontal line
+            if new_group(idx2, key, N-1)
+                c1 = nonempty_rows(t) + 1
+                c2 = c1 + length(t.columns) - 1
+                output *= "\\\\ \\cline{$c1-$c2} \n"
+            else
+                output *= "\\\\ \n"
+            end
+        end
+
+        print_flag = false
 
         # Print the name
-        output *= format("{:>$l} ", string(key) )
-        second = []
+        for j=1:N
+            # Check if we're at a new linegroup
+            if i == 1
+                print_flag = true
+            else
+                print_flag = new_group(idx2, key, j)
+            end
+
+            # Put in the appropriate output
+            name    = print_flag ? string(key.name[j]) : ""
+            pad     = lh[j] > 0 ? 1 : 0
+            output *= format("{:>$(lh[j] + pad)} ", name)
+        end
+
+        # Print the first line
+        second  = []
         for (val, se) in row
             output *= "\& $val "
             push!(second, se)
         end
 
-        # New line
-        output *= "\\\\ \n"
-
         # Only print standard errors if it's nonempty
         if !all(isempty.(strip.(second)))
-            output *= format("{:>$l} ", "")
+            # New line
+            output *= "\\\\ \n"
+
+            # Print Standard Errors
+            output *= format("{:>$l} ", " ")
             for se in second
                 output *= "\& $se "
             end
-            # New line
-            output *= "\\\\ \n"
         end
     end
 
     return output
 end
 
-tex_foot(t::IndexedTable{1,1}) = "\\bottomrule \n\\end{tabular}"
+tex_foot(t::IndexedTable) = "\n\\bottomrule \n\\end{tabular}"
 
-function tex(t::IndexedTable{1,1})
+function tex(t::IndexedTable)
     return prod([tex_head(t), tex_body(t), tex_foot(t)])
 end
 
-function write_tex(outfile, t::IndexedTable{1,1})
+function write_tex(outfile, t::IndexedTable)
     open(outfile, "w") do f
         write(f, tex(t))
     end
 end
-
-
