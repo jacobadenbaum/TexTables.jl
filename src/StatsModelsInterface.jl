@@ -5,10 +5,6 @@ constructor (or, since the Table constructor falls back to TableCols on
 a vararg, the Table constructor).
 =#
 
-using StatsBase
-using GLM: LinearModel
-using StatsModels: DataFrameRegressionModel
-
 varnames(m::LinearModel) = m.pp.X
 varnames(m::DataFrameRegressionModel) = coefnames(m.mf)
 

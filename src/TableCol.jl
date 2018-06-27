@@ -1,4 +1,3 @@
-using DataStructures
 import Base: isless, ==
 
 Idx{N}      = NTuple{N, Int}

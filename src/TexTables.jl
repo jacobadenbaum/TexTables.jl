@@ -1,9 +1,14 @@
 module TexTables
 
 # package code goes here
-# Nice string formattting
-using Formatting, StatsBase
 
+# Nice string formattting
+using Formatting, DataStructures
+
+# Required for StatsModels Integration
+using StatsBase
+using GLM: LinearModel
+using StatsModels: DataFrameRegressionModel
 
 export FormattedNumber, FNum, FNumSE, @fmt, TableCol
 export TableCol, Table, tex, write_tex
