@@ -190,7 +190,7 @@ show(io::IO, t::IndexedTable{N,M}) where {N,M} = print(io, head(t)*body(t))
 #################### Latex Table Output ################################
 ########################################################################
 
-function mc(cols, val="", align="|c|")
+function mc(cols, val="", align="c")
     return "\\multicolumn{$cols}{$align}{$val}"
 end
 
