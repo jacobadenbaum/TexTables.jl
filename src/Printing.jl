@@ -37,10 +37,6 @@ function rowheader_length(t::IndexedTable{N,M}; pad=3) where {N,M}
     return l
 end
 
-show(io::IO, t::IndexedTable{N,M}) where {N,M} = begin
-    print(io, "IndexedTable{$N,$M}")
-end
-
 ########################################################################
 #################### REPL Output #######################################
 ########################################################################
