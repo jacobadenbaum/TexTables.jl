@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/jacobadenbaum/TexTables.jl.svg?branch=master)](https://travis-ci.org/jacobadenbaum/TexTables.jl)
 
+[![Build status](https://ci.appveyor.com/api/projects/status/5a5w5ucqscscr5bl?svg=true)](https://ci.appveyor.com/project/jacobadenbaum/textables-jl)
+
 [![Coverage Status](https://coveralls.io/repos/github/jacobadenbaum/TexTables.jl/badge.svg?branch=master)](https://coveralls.io/github/jacobadenbaum/TexTables.jl?branch=master)
 
 The TexTable package provides an easy way for Julia users to quickly
