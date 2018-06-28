@@ -99,6 +99,11 @@ end
 
 FormattedNumber(x::FormattedNumber) = x
 
+# Unpack Tuples of Floats for precision
+FormattedNumber(x::Tuple{T1, T2}) where {T1<: AbstractFloat,
+                                         T2<:AbstractFloat} = begin
+    return FormattedNumber(x[1], x[2])
+end
 
 Base.show(io::IO, x::FNum) = print(io, format(x.format, x.val))
 Base.show(io::IO, x::FNumSE)= begin
