@@ -1,5 +1,3 @@
-import Base: isless, ==
-
 Idx{N}      = NTuple{N, Int}
 Name{N}     = NTuple{N, Symbol}
 
@@ -109,20 +107,29 @@ function TableCol(header, kv::Associative, kp::Associative)
                          for (i, (key, val)) in enumerate(kv)))
 end
 
-function TableCol(header, keys, values)
+function TableCol(header, keys::Vector, values::Vector)
 
     pairs = [TableIndex(i, key)=>FormattedNumber(val)
              for (i, (key, val)) in enumerate(zip(keys, values))]
     TableCol(header, OrderedDict(pairs...))
 end
 
-function TableCol(header, keys, values, precision)
+function TableCol(header, keys::Vector, values::Vector,
+                  precision::Vector)
 
     pairs  = [ TableIndex(i, key)=>FormattedNumber(val, se)
                for (i, (key, val, se))
                in enumerate(zip(keys, values, precision))]
     data = OrderedDict(pairs...)
     return TableCol(header, data)
+end
+
+convert(::Type{FormattedNumber}, x) = FormattedNumber(x)
+convert(::Type{FormattedNumber}, x::FormattedNumber) = x
+
+Entry = Pair{T, K} where {T<:Printable, K<:Union{Printable, Number}}
+function TableCol(header::Printable, pairs::Vararg{Entry})
+    return TableCol(header, OrderedDict(pairs))
 end
 
 ########################################################################

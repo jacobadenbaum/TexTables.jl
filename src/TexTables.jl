@@ -16,14 +16,17 @@ export IndexedTable, append_table, join_table, promote_rule
 
 # Import from base to extend
 import Base.getindex, Base.setindex!, Base.push!
+import Base: isless, ==
+import Base: getindex, size, hcat, vcat, convert, promote_rule
+import Base: show, size
 
+# Need this abstract type
 abstract type TexTable end
 
 include("FormattedNumbers.jl")
 include("TableCol.jl")
 include("CompositeTable.jl")
 include("Printing.jl")
-include("Public.jl")
 include("StatsModelsInterface.jl")
 
 end # module

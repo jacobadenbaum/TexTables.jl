@@ -2,8 +2,6 @@
 #################### Printing ##########################################
 ########################################################################
 
-import Base: show, size
-
 function getindex(t::IndexedTable, row)
     output = []
     for col in t.columns
