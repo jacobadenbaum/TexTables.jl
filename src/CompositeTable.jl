@@ -3,20 +3,21 @@ This code provides the framework to stich together two separate tables
 (either concatenating them horizontally or vertically).
 =#
 
-import Base: getindex, size, hcat, vcat, convert, promote_rule
-
-mutable struct IndexedTable{N, M}
+mutable struct IndexedTable{N, M} <: TexTable
     columns::Vector
     row_index::Index{N}
     col_index::Index{M}
 end
 
 IndexedTable(t::TableCol) = begin
-    columns     = vcat(t)
+    columns     = [t]
     row_index   = keys(t.data) |> collect
-    col_index   = vcat(t.header)
+    col_index   = [t.header]
     return IndexedTable(columns, row_index, col_index)
 end
+
+convert(::Type{IndexedTable}, t::TexTable) = IndexedTable(t)
+convert(::Type{IndexedTable}, t::IndexedTable) = t
 
 ########################################################################
 #################### Merging and Concatenating #########################
@@ -118,15 +119,21 @@ function hcat(t1::IndexedTable, t2::IndexedTable)
     return IndexedTable(columns, row_index, col_index)
 end
 
-hcat(tables::Vararg{IndexedTable{N,M}, K}) where {N,M,K}= reduce(hcat, tables)
-vcat(tables::Vararg{IndexedTable{N,M}, K}) where {N,M,K}= reduce(vcat, tables)
+hcat(tables::Vararg{TexTable}) = reduce(hcat, tables)
+vcat(tables::Vararg{TexTable}) = reduce(vcat, tables)
+
+# Make vcat and hcat work for all TexTables
+vcat(t1::TexTable, t2::TexTable) = vcat(convert.(IndexedTable,
+                                                 (t1, t2))...)
+hcat(t1::TexTable, t2::TexTable) = hcat(convert.(IndexedTable,
+                                                 (t1, t2))...)
 
 join_table(t1::IndexedTable) = t1
 
-function join_table(t1::IndexedTable, t2::IndexedTable)
+function join_table(t1::TexTable, t2::TexTable)
 
     # Promote to the same dimensions
-    t1, t2 = promote(t1, t2)
+    t1, t2 = promote(convert.(IndexedTable, (t1, t2)))
 
     t1_new = add_col_level(t1, 1)
     t2_new = add_col_level(t2, 2)
@@ -134,21 +141,22 @@ function join_table(t1::IndexedTable, t2::IndexedTable)
     return hcat(t1_new, t2_new)
 end
 
-function join_table(t1::IndexedTable, t2::IndexedTable,
-                    t3::IndexedTable, args...)
+function join_table(t1::TexTable, t2::TexTable,
+                    t3::TexTable, args...)
     return join_table(join_table(t1,t2), t3, args...)
 end
 
 # Joining on Pairs
 function join_table(p1::Pair{P1,T1}) where {P1 <: Printable,
-                                      T1 <: IndexedTable}
-    t1_new = add_col_level(p1.second, 1, p1.first)
+                                      T1 <: TexTable}
+    t1      = convert(IndexedTable, p1.first)
+    t1_new  = add_col_level(p1.second, 1, p1.first)
 end
 
 function join_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
-    {P1 <: Printable, P2 <: Printable, T1 <: IndexedTable, T2<:IndexedTable}
+    {P1 <: Printable, P2 <: Printable, T1 <: TexTable, T2<:TexTable}
 
-    t1, t2 = promote(p1.second, p2.second)
+    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second)))
 
     t1_new = add_col_level(t1, 1, p1.first)
     t2_new = add_col_level(t2, 2, p2.first)
@@ -160,7 +168,7 @@ function join_table(p1::Pair{P1,T1},
               p2::Pair{P2,T2},
               p3::Pair{P3,T3}, args...) where
                 {P1 <: Printable, P2 <: Printable, P3<:Printable,
-                T1 <: IndexedTable, T2<:IndexedTable, T3<:IndexedTable}
+                T1 <: TexTable, T2<:TexTable, T3<:TexTable}
 
     return join_table(join_table(p1, p2), p3, args...)
 end
@@ -174,8 +182,8 @@ join_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
 end
 
 # Appending
-append_table(t1::IndexedTable) = t1
-function append_table(t1::IndexedTable, t2::IndexedTable)
+append_table(t1::TexTable) = t1
+function append_table(t1::TexTable, t2::TexTable)
 
     # Promote to the same dimensions
     t1, t2 = promote(t1, t2)
@@ -186,22 +194,21 @@ function append_table(t1::IndexedTable, t2::IndexedTable)
     return vcat(t1_new, t2_new)
 end
 
-function append_table(t1::IndexedTable, t2::IndexedTable,
-                    t3::IndexedTable, args...)
+function append_table(t1::TexTable, t2::TexTable, t3::TexTable, args...)
     return append_table(append_table(t1,t2), t3, args...)
 end
 
 # Appending on Pairs
 function append_table(p1::Pair{P1,T1}) where {P1 <: Printable,
-                                      T1 <: IndexedTable}
-    t1_new = add_row_level(p1.second, 1, p1.first)
+                                      T1 <: TexTable}
+    t1      = convert(IndexedTable, p1.first)
+    t1_new  = add_row_level(p1.second, 1, t1)
 end
 
 function append_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
-    {P1 <: Printable, P2 <: Printable, T1 <: IndexedTable, T2<:IndexedTable}
+    {P1 <: Printable, P2 <: Printable, T1 <: TexTable, T2<:TexTable}
 
-    t1, t2 = promote(p1.second, p2.second)
-
+    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second)))
     t1_new = add_row_level(t1, 1, p1.first)
     t2_new = add_row_level(t2, 2, p2.first)
 
@@ -212,7 +219,7 @@ function append_table(p1::Pair{P1,T1},
               p2::Pair{P2,T2},
               p3::Pair{P3,T3}, args...) where
                 {P1 <: Printable, P2 <: Printable, P3<:Printable,
-                T1 <: IndexedTable, T2<:IndexedTable, T3<:IndexedTable}
+                T1 <: TexTable, T2<:TexTable, T3<:TexTable}
 
     return append_table(append_table(p1, p2), p3, args...)
 end
@@ -372,6 +379,11 @@ function add_col_level(t::IndexedTable{N,M},
 
     return IndexedTable(new_columns, t.row_index, new_cols)
 end
+
+add_row_level(t::TexTable, args...) = add_row_level(IndexedTable(t),
+                                                    args...)
+add_col_level(t::TexTable, args...) = add_col_level(IndexedTable(t),
+                                                    args...)
 
 ########################################################################
 #################### Access Methods ####################################

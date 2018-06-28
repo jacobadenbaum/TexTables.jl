@@ -38,15 +38,15 @@
         srand(1234)
         x  = randn(10)
         y  = [Symbol(:key, i) for i=1:10]
-        t1 = Table("test", y, x)
-        t2 = Table("test2", y[2:9], x[2:9])
-        t3 = Table("test3", y, x, randn(10) .|> abs .|> sqrt)
+        t1 = TableCol("test", y, x)
+        t2 = TableCol("test2", y[2:9], x[2:9])
+        t3 = TableCol("test3", y, x, randn(10) .|> abs .|> sqrt)
         sub_tab1= hcat(t1, t2, t3)
 
         # Composite Table Checks
-        t4 = Table("test" , Dict("Fixed Effects"=>"Yes"))
-        t5 = Table("test2", Dict("Fixed Effects"=>"No"))
-        t6 = Table("test3", Dict("Fixed Effects"=>"Yes"))
+        t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes"))
+        t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))
+        t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes"))
         c1 = append_table(t1, t4)
         c2 = append_table(t2, t5)
         c3 = append_table(t3, t6)

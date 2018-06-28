@@ -41,14 +41,19 @@ df = dataset("datasets", "attitude")
 cols = []
 for header in names(df)
     x = df[header]
-    stats = OrderedDict("N"     => length(x),
-                        "Mean"  => mean(x),
-                        "Std"   => std(x),
-                        "Min"   => minimum(x),
-                        "Max"   => maximum(x))
-    push!(cols, Table(header, stats))
+    stats = TableCol(header,
+                     "N"     => length(x),
+                     "Mean"  => mean(x),
+                     "Std"   => std(x),
+                     "Min"   => minimum(x),
+                     "Max"   => maximum(x))
+    push!(cols, stats)
 end
 ```
+The base unit of `TexTables` is the `TableCol` type -- it represents a
+header and an OrderedDict of keys and values using special indices that
+allow the user to easily combine tables together.
+
 Each entry of `cols` is it's own table, which we can view in the REPL:
 ```julia
 julia> cols[1]
@@ -110,7 +115,7 @@ m5 = lm(@formula( Rating ~ 1 + Raises + Learning + Privileges
 We can view any one of these as it's own table with the same kind of
 `Table` constructor as before:
 ```julia
-julia> t1 = Table("(1)", m1)
+julia> t1 = TableCol("(1)", m1)
             |   (1)
 -----------------------
 (Intercept) | 19.978
@@ -123,11 +128,11 @@ julia> t1 = Table("(1)", m1)
 ```
 We can combine them together with their own special names
 ```julia
-julia> reg_table = hcat(Table("(1)", m1),
-                        Table("(2)", m2),
-                        Table("(3)", m3),
-                        Table("(4)", m4),
-                        Table("(5)", m5))
+julia> reg_table = hcat(TableCol("(1)", m1),
+                        TableCol("(2)", m2),
+                        TableCol("(3)", m3),
+                        TableCol("(4)", m4),
+                        TableCol("(5)", m5))
            |   (1)    |   (2)    |   (3)    |   (4)   |   (5)
 ------------------------------------------------------------------
 (Intercept) | 19.978   | 15.809   | 14.167   | 11.834  | 11.011
@@ -167,11 +172,11 @@ together under a single heading, and the last two were separate.  We
 could instead construct each group separately and then combine them
 together with the `join_table` function:
 ```julia
-group1 = hcat(  Table("(1)", m1),
-                Table("(2)", m2),
-                Table("(3)", m3))
-group2 = hcat(  Table("(1)", m4),
-                Table("(2)", m5))
+group1 = hcat(  TableCol("(1)", m1),
+                TableCol("(2)", m2),
+                TableCol("(3)", m3))
+group2 = hcat(  TableCol("(1)", m4),
+                TableCol("(2)", m5))
 grouped_table = join_table( "Group 1"=>group1,
                             "Group 2"=>group2)
 ```
