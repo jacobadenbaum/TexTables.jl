@@ -145,7 +145,7 @@ end
 function getindex(col::TableCol{1,N}, key::Printable, backup="") where N
 
     x   = Symbol(key)
-    loc = string_lookup(col, x)
+    loc = name_lookup(col, x)
     index = keys(col.data) |> collect
 
     if length(loc) > 1
@@ -160,7 +160,7 @@ function getindex(col::TableCol{1,N}, key::Printable, backup="") where N
     end
 end
 
-function string_lookup(col::TableCol{1,N}, x::String) where N
+function name_lookup(col::TableCol{1,N}, x::Symbol) where N
     index = keys(col.data)
     idxs  = get_idx(index, 1)
     names = get_name(index, 1)
@@ -204,10 +204,5 @@ end
 
 function setindex!(col::TableCol, value, key::TableIndex)
     col.data[key] = FormattedNumber(value)
-    return col
-end
-
-function setindex!(col::TableCol, value::Tuple, key::TableIndex)
-    col.data[key] = FormattedNumber(value...)
     return col
 end

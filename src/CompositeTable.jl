@@ -377,8 +377,8 @@ end
 #################### Access Methods ####################################
 ########################################################################
 
-Indexable{N}  = Union{TableIndex{N}, Name{N}, Idx{N}}
-Idexable1D    = Union{Printable, Integer}
+Indexable{N}  = Union{TableIndex{N}, Tuple}
+Indexable1D   = Union{Printable, Integer}
 
 function row_loc(t::IndexedTable{N,M}, idx::Indexable{N}) where {N,M}
     locate(t.row_index, idx)
@@ -396,30 +396,44 @@ function loc(t::IndexedTable{N,M},
     cloc = locate(t.col_index, cidx)
 
     if isempty(rloc) | isempty(cloc)
-        throw(KeyError("key ($row, $col) not found"))
+        throw(KeyError("key ($ridx, $cidx) not found"))
     elseif length(rloc) > 1
         throw(KeyError("""
-           $row does not uniquely identify a row
+           $ridx does not uniquely identify a row
            """))
     elseif length(cloc) > 1
         throw(KeyError("""
-            $col does not uniquely identify a column
+            $cidx does not uniquely identify a column
             """))
     else
         return rloc[1], cloc[1]
     end
 end
 
-function locate(index::Vector{TableIndex{N}},idx::TableIndex{N}) where N
+function locate(index::Vector{TableIndex{N}}, idx::TableIndex{N}) where N
     return findin(idx, index)
 end
 
-function locate(index::Vector{TableIndex{N}}, idx::Name{N}) where N
-    return find(x->x.name == idx, index)
+function locate(index::Vector{TableIndex{N}}, idx) where N
+    length(idx) == N || throw(ArgumentError("""
+                        $idx does not have dimension $N
+                        """))
+    return find(index) do x
+        for i=1:N
+            match_index(x, idx[i], i) || return false
+        end
+        return true
+    end
 end
 
-function locate(index::Vector{TableIndex{N}}, idx::Idx{N}) where N
-    return find(x->x.idx == idx, index)
+function match_index(index::TableIndex{N}, idx::Printable,
+                     level::Int) where N
+    return index.name[level] == Symbol(idx)
+end
+
+function match_index(index::TableIndex{N}, idx::Int,
+                     level::Int) where N
+    return index.idx[level] == idx
 end
 
 function getindex(t::IndexedTable{N,M}, row::Indexable{N},
@@ -433,14 +447,14 @@ function setindex!(t::IndexedTable, args...)
 end
 
 # Fallback Methods
-function getindex(t::IndexedTable, row, col)
+function getindex(t::IndexedTable, row::Indexable1D, col::Indexable1D)
     return t[tuple(row), tuple(col)]
 end
 
-function getindex(t::IndexedTable, row::Indexable, col)
+function getindex(t::IndexedTable, row::Indexable, col::Indexable1D)
     return t[row, tuple(col)]
 end
 
-function getindex(t::IndexedTable, row, col::Indexable)
+function getindex(t::IndexedTable, row::Indexable1D, col::Indexable)
     return t[tuple(row), col]
 end

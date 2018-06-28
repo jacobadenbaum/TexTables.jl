@@ -4,7 +4,8 @@ using   DataStructures
 using   Base.Test
 
 tests = ["tablecol",
-         "composite_tables"]
+         "composite_tables",
+         "indexing"]
 
 @testset "TexTables" begin
     for testsuite in tests

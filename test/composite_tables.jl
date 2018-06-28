@@ -2,9 +2,9 @@
 srand(1234)
 x  = randn(10)
 y  = [Symbol(:key, i) for i=1:10]
-t1 = TableCol("test", y, x) |> IndexedTable
-t2 = TableCol("test2", y[2:9], x[2:9]) |> IndexedTable
-t3 = TableCol("test3", y, x, randn(10) .|> abs .|> sqrt) |> IndexedTable
+t1 = Table("test", y, x)
+t2 = Table("test2", y[2:9], x[2:9])
+t3 = Table("test3", y, x, randn(10) .|> abs .|> sqrt)
 sub_tab1= hcat(t1, t2, t3)
 
 # Composite Table Checks
