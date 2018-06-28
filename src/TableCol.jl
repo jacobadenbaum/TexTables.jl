@@ -58,8 +58,6 @@ function isless_group(index1::TableIndex{N}, index2::TableIndex{N},
     return false
 end
 
-
-
 ########################################################################
 #################### Columns ###########################################
 ########################################################################
@@ -72,6 +70,9 @@ end
 function TableCol(header::String)
     return TableCol(header, TableDict())
 end
+
+TableCol(header::String) = TableCol(TableIndex(1, header),
+                                    TableDict{1, FormattedNumber}())
 
 TableCol(x::TableCol; kwargs...) = x
 
@@ -101,17 +102,20 @@ end
 
 function TableCol(header, kv::Associative, kp::Associative)
     TableCol(header,
-             OrderedDict(TableIndex(i, key)=>(key in keys(kp)) ?
-                         FormattedNumber(val, kp[key]) :
-                         FormattedNumber(val)
-                         for (i, (key, val)) in enumerate(kv)))
+             OrderedDict{TableIndex{1}, FormattedNumber}(
+                TableIndex(i, key)=>(key in keys(kp)) ?
+                                    FormattedNumber(val, kp[key]) :
+                                    FormattedNumber(val)
+                                    for (i, (key, val))
+                                    in enumerate(kv)))
 end
 
-function TableCol(header, keys::Vector, values::Vector)
+function TableCol(header, ks::Vector, vs::Vector)
 
     pairs = [TableIndex(i, key)=>FormattedNumber(val)
-             for (i, (key, val)) in enumerate(zip(keys, values))]
-    TableCol(header, OrderedDict(pairs...))
+             for (i, (key, val)) in enumerate(zip(ks, vs))]
+    TableCol(header,
+             OrderedDict{TableIndex{1}, FormattedNumber}(pairs...))
 end
 
 function TableCol(header, keys::Vector, values::Vector,
@@ -127,7 +131,8 @@ end
 convert(::Type{FormattedNumber}, x) = FormattedNumber(x)
 convert(::Type{FormattedNumber}, x::FormattedNumber) = x
 
-Entry = Pair{T, K} where {T<:Printable, K<:Union{Printable, Number}}
+Entry = Pair{T, K} where {T<:Printable, K<:Union{Printable, Number,
+                                                 NTuple{2,Number}}}
 function TableCol(header::Printable, pairs::Vararg{Entry})
     return TableCol(header, OrderedDict(pairs))
 end
@@ -192,7 +197,7 @@ end
 
 function setindex!(col::TableCol{1,N}, value, key::Printable) where N
     skey        = Symbol(key)
-    loc         = string_lookup(col, skey)
+    loc         = name_lookup(col, skey)
     col_index   = keys(col.data) |> collect
     if length(loc) > 1
         throw(KeyError("""
@@ -202,7 +207,9 @@ function setindex!(col::TableCol{1,N}, value, key::Printable) where N
     elseif length(loc) == 0
         # We need to insert it at a new position
         index   = get_idx(col_index, 1)
-        new_idx = maximum(index) + 1
+        new_idx =   length(index) > 0  ?
+                    maximum(index) + 1 :
+                    1
         col[TableIndex(new_idx, skey)] = value
     else
         col[col_index[loc[1]]] = value

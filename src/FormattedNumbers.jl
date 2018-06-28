@@ -60,6 +60,7 @@ struct FNum{T} <: FormattedNumber{T}
     end
 end
 
+==(x1::FNum, x2::FNum) = x1.val == x2.val && x1.format == x2.format
 
 struct FNumSE{T} <: FormattedNumber{T}
     val::T
@@ -74,6 +75,10 @@ struct FNumSE{T} <: FormattedNumber{T}
     end
 end
 
+==(x1::FNumSE, x2::FNumSE) =   x1.val == x2.val &&
+                               x1.se  == x2.se  &&
+                               x1.format == x2.format &&
+                               x1.format_se == x2.format_se
 
 function FormattedNumber(val::T, format::String=default_fmt(T)) where T
     return FNum(val, format)
@@ -123,4 +128,8 @@ Base.promote_rule(::Type{FNumSE{T}}, ::Type{FNum{S}}) where {T,S} = FNumSE
 value(x::FormattedNumber)   = format(x.format, x.val)
 se(x::FNumSE)               = format("($(x.format_se))", x.se)
 se(x::FNum)                 = ""
+
+
+
+
 

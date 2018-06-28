@@ -183,7 +183,15 @@ function body(t::IndexedTable{N,M}) where {N,M}
     return output
 end
 
-show(io::IO, t::IndexedTable{N,M}) where {N,M} = print(io, head(t)*body(t))
+show(io::IO, t::IndexedTable{N,M}) where {N,M} = begin
+    if all(size(t) .> 0)
+        print(io, head(t)*body(t))
+    else
+        print(io, "IndexedTable{$N,$M} of size $(size(t))")
+    end
+end
+
+
 ########################################################################
 #################### Latex Table Output ################################
 ########################################################################
