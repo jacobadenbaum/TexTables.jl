@@ -9,6 +9,7 @@ using Formatting, DataStructures
 using StatsBase
 using GLM: LinearModel
 using StatsModels: DataFrameRegressionModel
+using Parameters
 
 export FormattedNumber, FNum, FNumSE, @fmt, TableCol
 export TableCol, Table, tex, write_tex

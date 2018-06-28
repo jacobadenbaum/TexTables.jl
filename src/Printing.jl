@@ -1,3 +1,149 @@
+@with_kw mutable struct TableParams
+    pad::Int=3
+end
+
+
+mutable struct TablePrinter{N,M}
+    table::IndexedTable{N,M}
+    params::TableParams
+    col_length
+    col_schema
+    row_schema
+end
+function TablePrinter(table::IndexedTable{N,M}; kwargs...) where {N,M}
+
+    col_schema = generate_schema(table.col_index)
+    row_schema = generate_schema(table.row_index)
+    col_length = get_lengths(table, col_schema)
+    params     = TableParams(;kwargs...)
+
+    return TablePrinter(table, params, col_length, col_schema,
+                        row_schema)
+end
+
+########################################################################
+#################### Index Schemas #####################################
+########################################################################
+
+"""
+```
+new_group(idx1::TableIndex, idx2::TableIndex, level::Int)
+```
+Internal method. Compares two elements from an index (of type
+`Index{N}`) and checks whether or not `idx2` is in a different group
+than `idx1` at index-depth `level`.  An index starts a new group if
+either its numeric position has changed, or the string value has
+changed.
+
+Calls itself recursively on each level above the given level to see
+whether or not we have a new group at any of the higher levels.
+"""
+function new_group(idx1::TableIndex{N}, idx2::TableIndex{N},
+                   level::Int) where N
+
+    # Terminal case
+    level == 0 && return false
+
+    # In other levels, recurse backwards through the levels -- short
+    # circuiting if we find any level where we're switching to a new
+    # group
+    return new_group(idx1, idx2, level-1) || begin
+        same_num    = idx1.idx[level]  == idx2.idx[level]
+        same_name   = idx1.name[level] == idx2.name[level]
+        return (!same_num) | (!same_name)
+    end
+end
+
+"""
+```
+get_level(idx::$Idx, i)
+```
+Extracts the `i`th level of the index `idx` (both the integer and name
+component) and returns it as a tuple.
+"""
+get_level(idx::TableIndex, i) = idx.idx[i], idx.name[i]
+
+"""
+```
+generate_schema(index::$Index [, level::Int])
+```
+Returns a vector of `Pair{Tuple{Int, Symbol},Int}`, where for each
+`pair`, `pair.first` is a tuple of the positional and symbolic
+components of the index level, and `pair.second` is the number of times
+that this entry is repeated within `level`.
+
+When called without a level specified, returns an `OrderedDict` of
+`level=>generate_schema(index, level)` for each level.
+
+Example
+-------
+If we had a column `c1` that looked like
+```
+julia> show(c1)
+              |  test
+-----------------------
+         key1 | 0.867
+         key2 | -0.902
+         key3 | -0.494
+         key4 | -0.903
+         key5 | 0.864
+         key6 | 2.212
+         key7 | 0.533
+         key8 | -0.272
+         key9 | 0.502
+        key10 | -0.517
+-----------------------
+Fixed Effects | Yes
+```
+Then `generate_schema` would return:
+```
+julia> generate_schema(c2.row_index, 1)
+2-element Array{Any,1}:
+ (1, Symbol(""))=>8
+ (2, Symbol(""))=>1
+
+julia> generate_schema(c2.row_index, 2)
+9-element Array{Any,1}:
+ (1, :key2)=>1
+ (2, :key3)=>1
+ (3, :key4)=>1
+ (4, :key5)=>1
+ (5, :key6)=>1
+ (6, :key7)=>1
+ (7, :key8)=>1
+ (8, :key9)=>1
+ (1, Symbol("Fixed Effects"))=>1
+```
+"""
+function generate_schema(index::Index{N}, level::Int) where N
+    # Argument Checking
+    1 <= level <= N || throw(BoundsError("$level is invalid level"))
+
+    # Initialize the level schema
+    level_schema    = []
+    idx             = get_level(index[1], level)
+    count           = 1
+
+    # Loop through the index values
+    n       = length(index)
+    for i = 1:n-1
+        # If the next index is new, push it to the list
+        if new_group(index[i], index[i+1], level)
+            push!(level_schema, idx=>count)
+            idx     = get_level(index[i+1], level)
+            count   = 1
+        else
+            count  += 1
+        end
+    end
+    push!(level_schema, idx=>count)
+    return level_schema
+end
+
+function generate_schema(index::Index{N}) where N
+    return OrderedDict(i=>generate_schema(index, i) for i=1:N)
+end
+
 ########################################################################
 #################### Printing ##########################################
 ########################################################################
@@ -38,21 +184,6 @@ end
 ########################################################################
 #################### REPL Output #######################################
 ########################################################################
-
-function new_group(idx1, idx2, level::Int)
-
-    # Terminal case
-    level == 0 && return false
-
-    # In other levels, recurse backwards through the levels -- short
-    # circuiting if we find any level where we're switching to a new
-    # group
-    return new_group(idx1, idx2, level-1) || begin
-        same_num    = idx1.idx[level]  == idx2.idx[level]
-        same_name   = idx1.name[level] == idx2.name[level]
-        return (!same_num) | (!same_name)
-    end
-end
 
 function center(str::String, width::Int)
 

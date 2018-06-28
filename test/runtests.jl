@@ -3,9 +3,7 @@ import  TexTables:  TableIndex, TableDict
 using   DataStructures
 using   Base.Test
 
-tests = ["tablecol",
-         "composite_tables",
-         "indexing"]
+tests = ["tablecol", "composite_tables", "indexing", "printing" ]
 
 @testset "TexTables" begin
     for testsuite in tests
