@@ -2,6 +2,14 @@
 #################### Helper Functions for Testing ######################
 ########################################################################
 
+function resource_path()
+    if splitdir(pwd())[2] == "TexTables"
+        return joinpath("test", "resources")
+    else
+        return joinpath("resources")
+    end
+end
+
 """
 Compares the contents of the file found at `fpath` to `fstring` line by
 line, testing for equality.
@@ -21,7 +29,7 @@ end
 Generates the path to test table `i`
 """
 function test_table(i)
-    return joinpath("resources", "test_table$i.txt")
+    return joinpath(resource_path(), "test_table$i.txt")
 end
 
 function compare_file(i::Int, fstring::String)
@@ -29,13 +37,13 @@ function compare_file(i::Int, fstring::String)
 end
 
 function export_table(i, fstring::String)
-    open(joinpath("test", test_table(i)), "w") do f
+    open(joinpath(resource_path(), test_table(i)), "w") do f
         write(f, fstring)
     end
 end
 
 function next_test_table()
-    files = readdir(joinpath("test", "resources"))
+    files = readdir(resource_path())
     nums  = map(files) do file
         m = match(r"(?<=(test_table))\d*(?=(.txt))", file).match
         parse(Int, m)
