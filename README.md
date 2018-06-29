@@ -1,9 +1,7 @@
 # TexTables.jl
 
 [![Build Status](https://travis-ci.org/jacobadenbaum/TexTables.jl.svg?branch=master)](https://travis-ci.org/jacobadenbaum/TexTables.jl)
-
 [![Build status](https://ci.appveyor.com/api/projects/status/5a5w5ucqscscr5bl?svg=true)](https://ci.appveyor.com/project/jacobadenbaum/textables-jl)
-
 [![Coverage Status](https://coveralls.io/repos/github/jacobadenbaum/TexTables.jl/badge.svg?branch=master)](https://coveralls.io/github/jacobadenbaum/TexTables.jl?branch=master)
 
 The TexTable package provides an easy way for Julia users to quickly
@@ -72,11 +70,12 @@ display in the REPL as a formatted ASCII table
 julia> tab = hcat(cols...)
      | Rating | Complaints | Privileges | Learning | Raises | Critical | Advance
 ---------------------------------------------------------------------------------
-   N | 30     | 30         | 30         | 30       | 30     | 30       | 30
-Mean | 64.633 | 66.600     | 53.133     | 56.367   | 64.633 | 74.767   | 42.933
- Std | 12.173 | 13.315     | 12.235     | 11.737   | 10.397 | 9.895    | 10.289
- Min | 40     | 37         | 30         | 34       | 43     | 49       | 25
- Max | 85     | 90         | 83         | 75       | 88     | 92       | 72
+   N |     30 |         30 |         30 |       30 |     30 |       30 |      30
+Mean | 64.633 |     66.600 |     53.133 |   56.367 | 64.633 |   74.767 |  42.933
+ Std | 12.173 |     13.315 |     12.235 |   11.737 | 10.397 |    9.895 |  10.289
+ Min |     40 |         37 |         30 |       34 |     43 |       49 |      25
+ Max |     85 |         90 |         83 |       75 |     88 |       92 |      72
+
 ```
 
 ## Exporting the Table to LaTeX
@@ -91,11 +90,11 @@ When we open this table, we will get a human-readable LaTeX table:
 \begin{tabular}{r|ccccccc}
 \toprule
      & Rating & Complaints & Privileges & Learning & Raises & Critical & Advance \\ \hline
-   N & 30     & 30         & 30         & 30       & 30     & 30       & 30      \\
-Mean & 64.633 & 66.600     & 53.133     & 56.367   & 64.633 & 74.767   & 42.933  \\
- Std & 12.173 & 13.315     & 12.235     & 11.737   & 10.397 & 9.895    & 10.289  \\
- Min & 40     & 37         & 30         & 34       & 43     & 49       & 25      \\
- Max & 85     & 90         & 83         & 75       & 88     & 92       & 72      \\
+   N &     30 &         30 &         30 &       30 &     30 &       30 &      30 \\
+Mean & 64.633 &     66.600 &     53.133 &   56.367 & 64.633 &   74.767 &  42.933 \\
+ Std & 12.173 &     13.315 &     12.235 &   11.737 & 10.397 &    9.895 &  10.289 \\
+ Min &     40 &         37 &         30 &       34 &     43 &       49 &      25 \\
+ Max &     85 &         90 &         83 &       75 &     88 &       92 &      72 \\
 \bottomrule
 \end{tabular}
 ```
@@ -118,13 +117,13 @@ We can view any one of these as it's own table with the same kind of
 julia> t1 = TableCol("(1)", m1)
             |   (1)
 -----------------------
-(Intercept) | 19.978
+(Intercept) |   19.978
             | (11.688)
-     Raises | 0.691
-            | (0.179)
+     Raises |    0.691
+            |  (0.179)
 -----------------------
-          N | 30
-      $R^2$ | 0.348
+          N |       30
+      $R^2$ |    0.348
 ```
 We can combine them together with their own special names
 ```julia
@@ -133,23 +132,23 @@ julia> reg_table = hcat(TableCol("(1)", m1),
                         TableCol("(3)", m3),
                         TableCol("(4)", m4),
                         TableCol("(5)", m5))
-           |   (1)    |   (2)    |   (3)    |   (4)   |   (5)
+            |   (1)    |   (2)    |   (3)    |   (4)   |   (5)
 ------------------------------------------------------------------
-(Intercept) | 19.978   | 15.809   | 14.167   | 11.834  | 11.011
+(Intercept) |   19.978 |   15.809 |   14.167 |  11.834 |   11.011
             | (11.688) | (11.084) | (11.519) | (8.535) | (11.704)
-     Raises | 0.691    | 0.379    | 0.352    | -0.026  | -0.033
-            | (0.179)  | (0.217)  | (0.224)  | (0.184) | (0.202)
-   Learning |          | 0.432    | 0.394    | 0.246   | 0.249
-            |          | (0.193)  | (0.204)  | (0.154) | (0.160)
- Privileges |          |          | 0.105    | -0.103  | -0.104
-            |          |          | (0.168)  | (0.132) | (0.135)
- Complaints |          |          |          | 0.691   | 0.692
-            |          |          |          | (0.146) | (0.149)
-   Critical |          |          |          |         | 0.015
-            |          |          |          |         | (0.147)
+     Raises |    0.691 |    0.379 |    0.352 |  -0.026 |   -0.033
+            |  (0.179) |  (0.217) |  (0.224) | (0.184) |  (0.202)
+   Learning |          |    0.432 |    0.394 |   0.246 |    0.249
+            |          |  (0.193) |  (0.204) | (0.154) |  (0.160)
+ Privileges |          |          |    0.105 |  -0.103 |   -0.104
+            |          |          |  (0.168) | (0.132) |  (0.135)
+ Complaints |          |          |          |   0.691 |    0.692
+            |          |          |          | (0.146) |  (0.149)
+   Critical |          |          |          |         |    0.015
+            |          |          |          |         |  (0.147)
 ------------------------------------------------------------------
-          N | 30       | 30       | 30       | 30      | 30
-      $R^2$ | 0.348    | 0.451    | 0.459    | 0.715   | 0.715
+          N |       30 |       30 |       30 |      30 |       30
+      $R^2$ |    0.348 |    0.451 |    0.459 |   0.715 |    0.715
 ```
 
 Currently, `TexTables` works with several standard regression packages
@@ -159,6 +158,42 @@ how best to proceed on extending it to more model types.
 
 I think that I may spin these off into a "formulas" package at some
 point in the future.
+
+## Display Options
+
+You can recover the string output using the functions `to_latex` and
+`to_ascii`.  But, it is also possible to tweak the layout of the tables
+by passing keyword arguments to the `print`, `show`, `to_tex`, or
+`to_ascii` functions.  For instance, if you would like to display your
+standard errors on the same row as the coefficients, you can do so with
+the `se_pos` argument:
+```julia
+julia> print(to_ascii(hcat( TableCol("(1)", m1), TableCol("(2)", m2)),
+                      se_pos=:inline))
+            |       (1)       |       (2)
+------------------------------------------------
+(Intercept) | 19.978 (11.688) | 15.809 (11.084)
+     Raises |   0.691 (0.179) |   0.379 (0.217)
+   Learning |                 |   0.432 (0.193)
+------------------------------------------------
+          N |              30 |              30
+      $R^2$ |           0.348 |           0.451
+```
+
+Currently, `TexTables` supports the following display options:
+1.  `pad`::Int (default 1)
+        The number of spaces to pad the separator characters on each side.
+2.  `se_pos`::Symbol (default :below)
+    1.  :below -- Prints standard errors in parentheses on a second line
+        below the coefficients
+    2.  :inline -- Prints standard errors in parentheses on the same
+        line as the coefficients
+    3.  :none -- Supresses standard errors.  (I don't know why you would
+        want to do this... you probably shouldn't ever use it.)
+
+In the very near future, I will be adding support for stars for
+p-values, and it should be fairly easy to add custom table styles that
+are particular to any given journal's requirements.
 
 ## Row and Column Blocks
 
@@ -187,43 +222,43 @@ julia> grouped_table = join_table( "Group 1"=>group1,
             |            Group 1             |      Group 2
             |   (1)    |   (2)    |   (3)    |   (1)   |   (2)
 ------------------------------------------------------------------
-(Intercept) | 19.978   | 15.809   | 14.167   | 11.834  | 11.011
+(Intercept) |   19.978 |   15.809 |   14.167 |  11.834 |   11.011
             | (11.688) | (11.084) | (11.519) | (8.535) | (11.704)
-     Raises | 0.691    | 0.379    | 0.352    | -0.026  | -0.033
-            | (0.179)  | (0.217)  | (0.224)  | (0.184) | (0.202)
-   Learning |          | 0.432    | 0.394    | 0.246   | 0.249
-            |          | (0.193)  | (0.204)  | (0.154) | (0.160)
- Privileges |          |          | 0.105    | -0.103  | -0.104
-            |          |          | (0.168)  | (0.132) | (0.135)
- Complaints |          |          |          | 0.691   | 0.692
-            |          |          |          | (0.146) | (0.149)
-   Critical |          |          |          |         | 0.015
-            |          |          |          |         | (0.147)
+     Raises |    0.691 |    0.379 |    0.352 |  -0.026 |   -0.033
+            |  (0.179) |  (0.217) |  (0.224) | (0.184) |  (0.202)
+   Learning |          |    0.432 |    0.394 |   0.246 |    0.249
+            |          |  (0.193) |  (0.204) | (0.154) |  (0.160)
+ Privileges |          |          |    0.105 |  -0.103 |   -0.104
+            |          |          |  (0.168) | (0.132) |  (0.135)
+ Complaints |          |          |          |   0.691 |    0.692
+            |          |          |          | (0.146) |  (0.149)
+   Critical |          |          |          |         |    0.015
+            |          |          |          |         |  (0.147)
 ------------------------------------------------------------------
-          N | 30       | 30       | 30       | 30      | 30
-      $R^2$ | 0.348    | 0.451    | 0.459    | 0.715   | 0.715
+          N |       30 |       30 |       30 |      30 |       30
+      $R^2$ |    0.348 |    0.451 |    0.459 |   0.715 |    0.715
 ```
 And in latex, the group labels will be displayed with `\multicolumn`
 commands:
 ```latex
 \begin{tabular}{r|ccc|cc}
 \toprule
-            & \multicolumn{3}{c}{Group 1}& \multicolumn{2}{c}{Group 2}\\
-            & (1)      & (2)      & (3)      & (1)     & (2)      \\ \hline
-(Intercept) & 19.978   & 15.809   & 14.167   & 11.834  & 11.011   \\
-            & (11.688) & (11.084) & (11.519) & (8.535) & (11.704) \\
-     Raises & 0.691    & 0.379    & 0.352    & -0.026  & -0.033   \\
-            & (0.179)  & (0.217)  & (0.224)  & (0.184) & (0.202)  \\
-   Learning &          & 0.432    & 0.394    & 0.246   & 0.249    \\
-            &          & (0.193)  & (0.204)  & (0.154) & (0.160)  \\
- Privileges &          &          & 0.105    & -0.103  & -0.104   \\
-            &          &          & (0.168)  & (0.132) & (0.135)  \\
- Complaints &          &          &          & 0.691   & 0.692    \\
-            &          &          &          & (0.146) & (0.149)  \\
-   Critical &          &          &          &         & 0.015    \\
-            &          &          &          &         & (0.147)  \\ \hline
-          N & 30       & 30       & 30       & 30      & 30       \\
-      $R^2$ & 0.348    & 0.451    & 0.459    & 0.715   & 0.715    \\
+            & \multicolumn{3}{c}{Group 1}    & \multicolumn{2}{c}{Group 2} \\
+            & (1)      & (2)      & (3)      & (1)         & (2)          \\ \hline
+(Intercept) &   19.978 &   15.809 &   14.167 &      11.834 &       11.011 \\
+            & (11.688) & (11.084) & (11.519) &     (8.535) &     (11.704) \\
+     Raises &    0.691 &    0.379 &    0.352 &      -0.026 &       -0.033 \\
+            &  (0.179) &  (0.217) &  (0.224) &     (0.184) &      (0.202) \\
+   Learning &          &    0.432 &    0.394 &       0.246 &        0.249 \\
+            &          &  (0.193) &  (0.204) &     (0.154) &      (0.160) \\
+ Privileges &          &          &    0.105 &      -0.103 &       -0.104 \\
+            &          &          &  (0.168) &     (0.132) &      (0.135) \\
+ Complaints &          &          &          &       0.691 &        0.692 \\
+            &          &          &          &     (0.146) &      (0.149) \\
+   Critical &          &          &          &             &        0.015 \\
+            &          &          &          &             &      (0.147) \\ \hline
+          N &       30 &       30 &       30 &          30 &           30 \\
+      $R^2$ &    0.348 &    0.451 &    0.459 &       0.715 &        0.715 \\
 \bottomrule
 \end{tabular}
 ```

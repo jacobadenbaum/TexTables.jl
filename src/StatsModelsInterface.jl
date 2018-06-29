@@ -9,12 +9,12 @@ varnames(m::LinearModel) = m.pp.X
 varnames(m::DataFrameRegressionModel) = coefnames(m.mf)
 
 
-function Table(header, m::StatisticalModel;
-               stats=(:N=>Int∘nobs, "\$R^2\$"=>r2))
+function TableCol(header, m::StatisticalModel;
+                  stats=(:N=>Int∘nobs, "\$R^2\$"=>r2))
 
-    coef_block = Table(header, varnames(m), coef(m), stderror(m))
+    coef_block = TableCol(header, varnames(m), coef(m), stderror(m))
     stats_pairs = OrderedDict(p.first=>p.second(m) for p in stats)
-    stats_block = Table(header, stats_pairs)
+    stats_block = TableCol(header, stats_pairs)
 
     return append_table(coef_block, stats_block)
 end

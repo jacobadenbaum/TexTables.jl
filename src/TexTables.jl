@@ -12,8 +12,9 @@ using StatsModels: DataFrameRegressionModel
 using Parameters
 
 export FormattedNumber, FNum, FNumSE, @fmt, TableCol
-export TableCol, Table, tex, write_tex
+export TableCol, Table
 export IndexedTable, append_table, join_table, promote_rule
+export to_tex, to_ascii, write_tex
 
 # Import from base to extend
 import Base.getindex, Base.setindex!, Base.push!

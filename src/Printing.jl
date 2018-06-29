@@ -236,9 +236,9 @@ function get_lengths(printer::TablePrinter{N,M},
     for i=M:-1:1
         level_schema = printer.col_schema[i]
         col_pos = 0
-        bw_schema[i] = OrderedDict()
+        bw_schema[i] = []
 
-        for p in level_schema
+        for (s, p) in enumerate(level_schema)
             pos, name   = p.first
             block_size  = p.second
             fname       = format_name(printer, i, block_size, name)
@@ -257,14 +257,14 @@ function get_lengths(printer::TablePrinter{N,M},
                 remainder   = rem(difference, block_size)
                 for j = (1:block_size) + col_pos
                     lengths[j] += extra_space
-                    if j <= remainder
+                    if j <= remainder & u == 1
                         lengths[j] += 1
                     end
                 end
             end
 
             # Add the block width to the block width schema
-            bw_schema[i][p.first] = max(block_width, length(fname))
+            push!(bw_schema[i], max(block_width, length(fname)))
 
             # Update the column position
             col_pos += block_size
@@ -461,8 +461,8 @@ function head(printer::TablePrinter{N,M}) where {N,M}
         output *= pad_ws
 
         # Write each header
-        for pair in col_schema[i]
-            block_len   = bw_schema[i][pair.first]
+        for (s, pair) in enumerate(col_schema[i])
+            block_len   = bw_schema[i][s]
             block_size  = pair.second
             name        = pair.first[2]
             name        = format_name(printer, i, block_size, name)
@@ -744,12 +744,27 @@ function print(io::IO, t::IndexedTable; kwargs...)
     end
 end
 
-show(io::IO, t::IndexedTable; kwargs...) = print(io, t; kwargs...)
+function print(t::IndexedTable; kwargs...)
+    print(STDOUT, t; kwargs...)
+end
 
-function tex(t::IndexedTable; kwargs...)
+show(io::IO, t::IndexedTable; kwargs...) = print(io, t; kwargs...)
+show(t::IndexedTable; kwargs...) = print(t; kwargs...)
+
+########################################################################
+#################### String Output Methods #############################
+########################################################################
+
+function to_ascii(t::IndexedTable; kwargs...)
     any(size(t) .== 0) && throw(error("Can't export empty table"))
-    printer = TablePrinter(t; table_type = :latex, kwargs...)
-    return sprint(print, printer)
+    p= TablePrinter(t; table_type = :ascii, kwargs...)
+    return head(p)*body(p)*foot(p)
+end
+
+function to_tex(t::IndexedTable; kwargs...)
+    any(size(t) .== 0) && throw(error("Can't export empty table"))
+    p = TablePrinter(t; table_type = :latex, kwargs...)
+    return head(p)*body(p)*foot(p)
 end
 
 ########################################################################
@@ -758,6 +773,6 @@ end
 
 function write_tex(outfile, t::IndexedTable)
     open(outfile, "w") do f
-        write(f, tex(t))
+        write(f, to_tex(t))
     end
 end
