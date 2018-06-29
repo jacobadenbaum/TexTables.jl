@@ -457,8 +457,12 @@ function head(printer::TablePrinter{N,M}) where {N,M}
 
         # Add whitespace to account for the rowheader length, and add a
         # separator
-        output *= format("{:$rh_length}", "")
-        output *= pad_ws
+        for j=1:N
+            rhj     = rowheader_length(printer, j)
+            empty_row(t, j) && continue
+            output *= format("{:$rhj}", "")
+            output *= j < N ? pad_ws * sep * pad_ws : pad_ws
+        end
 
         # Write each header
         for (s, pair) in enumerate(col_schema[i])
@@ -540,9 +544,7 @@ function printline(printer::TablePrinter, i)
     inline   = se_pos == :inline
     below    = se_pos == :below
     if below & print_se
-        lh   = rowheader_length(printer)
-        line2= format("{:$lh}", "")
-        line2*= pad_ws
+        line2= rowheader(printer, i, empty=true)
     end
 
     for j = 1:m
@@ -574,7 +576,7 @@ function printline(printer::TablePrinter, i)
     return output
 end
 
-function rowheader(printer::TablePrinter{N,M}, i) where {N,M}
+function rowheader(printer::TablePrinter{N,M}, i; empty=false) where {N,M}
     t       =  printer.table
     pad     =  printer.params.pad
     pad_ws  =  " "^pad
@@ -598,7 +600,7 @@ function rowheader(printer::TablePrinter{N,M}, i) where {N,M}
         len     = rowheader_length(printer, j)
 
         # Print the name or whitespace depending on `print_name`
-        if print_name
+        if print_name & !empty
             # Check the size of the row if we're printing
             block_size  = schema_lookup(printer.row_schema[j], i)
 
