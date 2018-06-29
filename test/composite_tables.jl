@@ -17,7 +17,7 @@ sub_tab2= hcat(t4, t5, t6)
 tab     = vcat(sub_tab1, sub_tab2)
 tab2    = [t1 t2 t3
            t4 t5 t6]
-@test sprint(show, tab) == sprint(show, tab2)
+@test to_ascii(tab) == to_ascii(tab2)
 
 c1 = append_table(t1, t4)
 c2 = append_table(t2, t5)
@@ -50,4 +50,4 @@ test_string = """
     \\bottomrule
     \\end{tabular}"""
 
-@test tex(sub_tab1) == test_string
+@test to_tex(sub_tab1) == test_string

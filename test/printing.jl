@@ -68,14 +68,14 @@ end
     @test_throws BoundsError generate_schema(c3.row_index, 3)
 
     s = generate_schema(c2.row_index, 1)
-    @test schema_lookup(s, 1) == 1
-    @test schema_lookup(s, 8) == 1
-    @test schema_lookup(s, 9) == 2
+    @test schema_lookup(s, 1) == 8
+    @test schema_lookup(s, 8) == 8
+    @test schema_lookup(s, 9) == 1
 
     s = generate_schema(c2.row_index, 2)
     @test schema_lookup(s, 1) == 1
-    @test schema_lookup(s, 8) == 8
-    @test schema_lookup(s, 9) == 9
+    @test schema_lookup(s, 8) == 1
+    @test schema_lookup(s, 9) == 1
 
 
 end
