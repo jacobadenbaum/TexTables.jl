@@ -1,5 +1,4 @@
 
-using   RDatasets
 import   TexTables: tuplefy
 
 @testset "tuplefy" begin
@@ -10,7 +9,7 @@ import   TexTables: tuplefy
     for x in [(val,) for val in vals]
         @test tuplefy(x) == x
     end
-    for x in vals, for y in vals
+    for x in vals, y in vals
         @test tuplefy((x, y)) == (x,y)
     end
 end
