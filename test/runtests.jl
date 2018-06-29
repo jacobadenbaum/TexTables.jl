@@ -6,7 +6,7 @@ using   Base.Test
 include("helper.jl")
 
 tests = [   "tablecol", "composite_tables", "indexing", "printing",
-            "examples"]
+            "examples", "quicktools"]
 
 @testset "TexTables" begin
     for testsuite in tests
