@@ -68,4 +68,14 @@ end
     sum4 = summarize_by(iris, :Species, detail=true)
     compare_file(16, sum4 |> to_ascii)
     compare_file(17, sum4 |> to_tex)
+
+    sum5 = tabulate(iris, :Species)
+    compare_file(18, sum5 |> to_ascii)
+    compare_file(19, sum5 |> to_tex)
+
+    sum6 = tabulate(iris, :PetalWidth)
+    compare_file(20, sum6 |> to_ascii)
+    compare_file(21, sum6 |> to_tex)
+
+
 end
