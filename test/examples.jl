@@ -1,7 +1,7 @@
 using RDatasets, TexTables, DataStructures, DataFrames
 using StatsModels, GLM
 
-@test "Linear Model Examples" begin
+@testset "Linear Model Examples" begin
     # Check that this code runs without errors
     df = dataset("datasets", "attitude")
     # Compute summary stats for each variable
@@ -54,7 +54,7 @@ end
 
     sum1 = summarize(iris)
     compare_file(10, sum1 |> to_ascii)
-    compare_file(11, sum1 |> to_latex)
+    compare_file(11, sum1 |> to_tex)
 
 
     sum2 = summarize(iris, detail=true)
