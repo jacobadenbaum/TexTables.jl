@@ -31,9 +31,9 @@ the basic usage, primarily using several convenience functions that make
 it easy to construct common tables.  However, these functions are a
 small subset of what `TexTables` is designed for: it should be easy
 to programatically make any type of hierarchical table and and print it
-to LaTeX.  For more details on how to roll-your-own tables (or integrate
-LaTeX tabular output into your own package) very easily using
-`TexTables`, see the Advanced Usage section below.
+to LaTeX.  For more details on how to easily roll-your-own tables (or
+integrate LaTeX tabular output into your own package) using `TexTables`,
+see the Advanced Usage section below.
 
 ## Making A Table of Summary Statistics
 Let's download the `iris` dataset from `RDatasets`, and quickly
