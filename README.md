@@ -30,24 +30,186 @@ assemble on the fly.  Let's try a simple example (inspired by the
 documentation in the `stargazer` package for `R`) using the "attitudes"
 data from `RDatasets` to make a table with summary statistics.
 
-## Making A New Table
-```julia
-using RDatasets, TexTables, DataStructures, DataFrames
-df = dataset("datasets", "attitude")
+## Making A Table of Summary Statistics
+Let's download the `attitude` dataset from `RDatasets`, and quickly
+compute some summary statistics.
 
-# Compute summary stats for each variable
-cols = []
-for header in names(df)
-    x = df[header]
-    stats = TableCol(header,
-                     "N"     => length(x),
-                     "Mean"  => mean(x),
-                     "Std"   => std(x),
-                     "Min"   => minimum(x),
-                     "Max"   => maximum(x))
-    push!(cols, stats)
-end
+```julia
+julia> using RDatasets, TexTables, DataStructures, DataFrames
+
+julia> df = dataset("datasets", "iris");
+
+julia> summarize(df)
+            | Obs | Mean  | Std. Dev. |  Min  |  Max
+------------------------------------------------------
+SepalLength | 150 | 5.843 |     0.828 | 4.300 | 7.900
+ SepalWidth | 150 | 3.057 |     0.436 | 2.000 | 4.400
+PetalLength | 150 | 3.758 |     1.765 | 1.000 | 6.900
+ PetalWidth | 150 | 1.199 |     0.762 | 0.100 | 2.500
+    Species |     |       |           |       |
 ```
+If we want more detail, we can pass the `detail=true` keyword argument:
+```julia
+julia> summarize(df,detail=true)
+            | Obs | Mean  | Std. Dev. |  Min  |  p10  |  p25  |  p50  |  p75  |  p90  |  Max
+----------------------------------------------------------------------------------------------
+SepalLength | 150 | 5.843 |     0.828 | 4.300 | 4.800 | 5.100 | 5.800 | 6.400 | 6.900 | 7.900
+ SepalWidth | 150 | 3.057 |     0.436 | 2.000 | 2.500 | 2.800 | 3.000 | 3.300 | 3.610 | 4.400
+PetalLength | 150 | 3.758 |     1.765 | 1.000 | 1.400 | 1.600 | 4.350 | 5.100 | 5.800 | 6.900
+ PetalWidth | 150 | 1.199 |     0.762 | 0.100 | 0.200 | 0.300 | 1.300 | 1.800 | 2.200 | 2.500
+    Species |     |       |           |       |       |       |       |       |       |
+
+```
+We can restrict to only some variables by passing a second positional
+argument, which can be either a `Symbol` or an iterable collection of
+symbols.
+
+The summarize function is similar to the Stata command `summarize`: it
+reports string variables all entries missing, and skips all missing
+values when computing statistics.
+
+To customize what statistics are calculated, you can pass `summarize`
+a `stats::Tuple{Union{Symbol,String},Function}` (or just a single pair
+will work too) keyword argument:
+```julia
+# Quantiles of nonmissing values (need to collect to pass to quantile)
+
+julia> nomiss(x) = skipmissing(x) |> collect;
+
+julia> new_stats = ("p25" => x-> quantile(nomiss(x), .25),
+                    "p50" => x-> quantile(nomiss(x), .5),
+                    "p75" => x-> quantile(nomiss(x), .75));
+
+julia> summarize(df, stats=new_stats)
+            |  p25  |  p50  |  p75
+------------------------------------
+SepalLength | 5.100 | 5.800 | 6.400
+ SepalWidth | 2.800 | 3.000 | 3.300
+PetalLength | 1.600 | 4.350 | 5.100
+ PetalWidth | 0.300 | 1.300 | 1.800
+    Species |       |       |
+```
+
+## Stacking Tables
+It's easy to stack two tables that you created at different parts of
+your code using calls to `hcat` or `vcat`:
+```julia
+julia> t11 = summarize(df, :SepalLength)
+            | Obs | Mean  | Std. Dev. |  Min  |  Max
+------------------------------------------------------
+SepalLength | 150 | 5.843 |     0.828 | 4.300 | 7.900
+
+julia> t21= summarize(df, :SepalWidth)
+           | Obs | Mean  | Std. Dev. |  Min  |  Max
+-----------------------------------------------------
+SepalWidth | 150 | 3.057 |     0.436 | 2.000 | 4.400
+
+julia> t12 = summarize(df, :SepalLength, stats=new_stats)
+            |  p25  |  p50  |  p75
+------------------------------------
+SepalLength | 5.100 | 5.800 | 6.400
+
+julia> t22 = summarize(df, :SepalWidth, stats=new_stats)
+           |  p25  |  p50  |  p75
+-----------------------------------
+SepalWidth | 2.800 | 3.000 | 3.300
+
+julia> tab = [t11   t12
+              t21   t22]
+            | Obs | Mean  | Std. Dev. |  Min  |  Max  |  p25  |  p50  |  p75
+------------------------------------------------------------------------------
+SepalLength | 150 | 5.843 |     0.828 | 4.300 | 7.900 | 5.100 | 5.800 | 6.400
+ SepalWidth | 150 | 3.057 |     0.436 | 2.000 | 4.400 | 2.800 | 3.000 | 3.300
+```
+
+You can also group statistics together with a call to the function
+`join_table`.  This constructs a new table with a column multi-index
+that groups your data into two column blocks.
+```julia
+julia> join_table( "Regular Summarize"  =>vcat(t11, t21),
+                    "My Detail"         =>vcat(t12, t22))
+            |            Regular Summarize            |       My Detail
+            | Obs | Mean  | Std. Dev. |  Min  |  Max  |  p25  |  p50  |  p75
+------------------------------------------------------------------------------
+SepalLength | 150 | 5.843 |     0.828 | 4.300 | 7.900 | 5.100 | 5.800 | 6.400
+ SepalWidth | 150 | 3.057 |     0.436 | 2.000 | 4.400 | 2.800 | 3.000 | 3.300
+
+```
+There is an analagous function for creating multi-indexed row tables
+`append_table`.  You can see it in action with a call to the function
+`summarize_by`, which calculates summary statistics by grouping on a
+variable.
+```julia
+julia> c1 = summarize_by(df, :Species, [:SepalLength, :SepalWidth])
+           |             | Obs | Mean  | Std. Dev. |  Min  |  Max
+-------------------------------------------------------------------
+    setosa | SepalLength |  50 | 5.006 |     0.352 | 4.300 | 5.800
+           |  SepalWidth |  50 | 3.428 |     0.379 | 2.300 | 4.400
+-------------------------------------------------------------------
+versicolor | SepalLength |  50 | 5.936 |     0.516 | 4.900 | 7.000
+           |  SepalWidth |  50 | 2.770 |     0.314 | 2.000 | 3.400
+-------------------------------------------------------------------
+ virginica | SepalLength |  50 | 6.588 |     0.636 | 4.900 | 7.900
+           |  SepalWidth |  50 | 2.974 |     0.322 | 2.200 | 3.800
+
+julia> c2 = summarize_by(df, :Species, [:SepalLength, :SepalWidth],
+                         stats=new_stats)
+           |             |  p25  |  p50  |  p75
+-------------------------------------------------
+    setosa | SepalLength | 4.800 | 5.000 | 5.200
+           |  SepalWidth | 3.200 | 3.400 | 3.675
+-------------------------------------------------
+versicolor | SepalLength | 5.600 | 5.900 | 6.300
+           |  SepalWidth | 2.525 | 2.800 | 3.000
+-------------------------------------------------
+ virginica | SepalLength | 6.225 | 6.500 | 6.900
+           |  SepalWidth | 2.800 | 3.000 | 3.175
+```
+Now, when we horizontally concatenate `c1` and `c2`, they will
+automatically maintiain the block-ordering in the rows:
+```julia
+julia> final_table = join_table("Regular Summarize"=>c1, "My Detail"=>c2)
+           |             |            Regular Summarize            |       My Detail
+           |             | Obs | Mean  | Std. Dev. |  Min  |  Max  |  p25  |  p50  |  p75
+-------------------------------------------------------------------------------------------
+    setosa | SepalLength |  50 | 5.006 |     0.352 | 4.300 | 5.800 | 4.800 | 5.000 | 5.200
+           |  SepalWidth |  50 | 3.428 |     0.379 | 2.300 | 4.400 | 3.200 | 3.400 | 3.675
+-------------------------------------------------------------------------------------------
+versicolor | SepalLength |  50 | 5.936 |     0.516 | 4.900 | 7.000 | 5.600 | 5.900 | 6.300
+           |  SepalWidth |  50 | 2.770 |     0.314 | 2.000 | 3.400 | 2.525 | 2.800 | 3.000
+-------------------------------------------------------------------------------------------
+ virginica | SepalLength |  50 | 6.588 |     0.636 | 4.900 | 7.900 | 6.225 | 6.500 | 6.900
+           |  SepalWidth |  50 | 2.974 |     0.322 | 2.200 | 3.800 | 2.800 | 3.000 | 3.175
+```
+
+## Exporting to Latex
+Now that we've constructed our table, we want to be able to export it to
+LaTeX so that we can show it to all of our friends and colleagues.
+We can print the LaTeX table as a string with a call to `to_tex`:
+
+```julia
+julia> final_table |> to_tex |> print
+\begin{tabular}{rr|ccccc|ccc}
+\toprule
+                            &             & \multicolumn{5}{c}{Regular Summarize}   & \multicolumn{3}{c}{My Detail} \\
+                            &             & Obs & Mean  & Std. Dev. & Min   & Max   & p25     & p50     & p75     \\ \hline
+    \multirow{2}{*}{setosa} & SepalLength &  50 & 5.006 &     0.352 & 4.300 & 5.800 &   4.800 &   5.000 &   5.200 \\
+                            &  SepalWidth &  50 & 3.428 &     0.379 & 2.300 & 4.400 &   3.200 &   3.400 &   3.675 \\ \hline
+\multirow{2}{*}{versicolor} & SepalLength &  50 & 5.936 &     0.516 & 4.900 & 7.000 &   5.600 &   5.900 &   6.300 \\
+                            &  SepalWidth &  50 & 2.770 &     0.314 & 2.000 & 3.400 &   2.525 &   2.800 &   3.000 \\ \hline
+ \multirow{2}{*}{virginica} & SepalLength &  50 & 6.588 &     0.636 & 4.900 & 7.900 &   6.225 &   6.500 &   6.900 \\
+                            &  SepalWidth &  50 & 2.974 &     0.322 & 2.200 & 3.800 &   2.800 &   3.000 &   3.175 \\
+\bottomrule
+\end{tabular}
+```
+Or we could just print it directly to a file with the command
+`write_tex("myfile.tex", final_table)`.  It's as simple as that.
+TableTex will automatically handle printing it in a way that is well
+aligned and can be read even from the raw tex file, and will align the
+multi-columns and multi-indexes for you.
+
+## TableCols
+
 The base unit of `TexTables` is the `TableCol` type -- it represents a
 header and an OrderedDict of keys and values using special indices that
 allow the user to easily combine tables together.

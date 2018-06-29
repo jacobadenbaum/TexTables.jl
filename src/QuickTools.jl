@@ -33,12 +33,14 @@ end
 NumericCol = Vector{T} where {T1<:Real, T2<:Real,
                               T<:Union{T1, Union{T2, Missing}}}
 
+tuplefy(x) = tuple(x)
+tuplefy(x::Tuple) = x
+
 function summarize(df::AbstractDataFrame, fields=names(df);
-                   detail=false, by=Symbol[],
-                   stats=default_stats(detail),
-                   kwargs...)
+                   detail=false, stats=default_stats(detail), kwargs...)
+
     cols = TableCol[]
-    for pair in stats
+    for pair in tuplefy(stats)
         col = TableCol(pair.first)
         for header in fields
             if df[header] isa NumericCol
@@ -57,6 +59,22 @@ function summarize(df::AbstractDataFrame, field::Symbol; kwargs...)
     summarize(df, vcat(field); kwargs...)
 end
 
+function summarize_by(df, byname::Symbol,
+                      fields=setdiff(names(df), vcat(byname));
+                      kwargs...)
+    tabs = []
+    gd = groupby(df, byname)
+    for sub in gd
+        tab = summarize(sub, fields; kwargs...)
+        vals= unique(sub[byname])
+        length(vals) == 1 || throw(error("Groupby isn't working"))
+        idx = vals[1]
+        push!(tabs, idx=>tab)
+    end
+
+    return append_table(tabs...)
+end
+
 ########################################################################
 #################### Cross Tabulations #################################
 ########################################################################
@@ -65,7 +83,7 @@ function tabulate(df::AbstractDataFrame, field)
 
     # Count the number of observations by `field`
     tab = by(df, field) do d
-        return DataFrame(N=size(d, 1))
+        return DataFrame(N=count(d[field]))
     end
 
     # Construct a Frequency Column

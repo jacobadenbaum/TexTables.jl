@@ -48,3 +48,24 @@ using StatsModels, GLM
     compare_file(8, grouped_table |> to_ascii)
     compare_file(9, grouped_table |> to_tex)
 end
+
+@testset "Summary Tables" begin
+    iris = dataset("datasets", "iris")
+
+    sum1 = summarize(iris)
+    compare_file(10, sum1 |> to_ascii)
+    compare_file(11, sum1 |> to_latex)
+
+
+    sum2 = summarize(iris, detail=true)
+    compare_file(12, sum2 |> to_ascii)
+    compare_file(13, sum2 |> to_tex)
+
+    sum3 = summarize_by(iris, :Species)
+    compare_file(14, sum3 |> to_ascii)
+    compare_file(15, sum3 |> to_tex)
+
+    sum4 = summarize_by(iris, :Species, detail=true)
+    compare_file(16, sum4 |> to_ascii)
+    compare_file(17, sum4 |> to_tex)
+end
