@@ -26,12 +26,17 @@ Pkg.clone("https://github.com/jacobadenbaum/TexTables.jl.git")
 
 # Basic Usage
 The goal for this package is to make most tables extremely easy to
-assemble on the fly.  Let's try a simple example (inspired by the
-documentation in the `stargazer` package for `R`) using the "attitudes"
-data from `RDatasets` to make a table with summary statistics.
+assemble on the fly.  In the next few sections, I'll demonstrate some of
+the basic usage, primarily using several convenience functions that make
+it easy to construct common tables.  However, these functions are a
+small subset of what `TexTables` is designed for: it should be easy
+to programatically make any type of hierarchical table and and print it
+to LaTeX.  For more details on how to roll-your-own tables (or integrate
+LaTeX tabular output into your own package) very easily using
+`TexTables`, see the Advanced Usage section below.
 
 ## Making A Table of Summary Statistics
-Let's download the `attitude` dataset from `RDatasets`, and quickly
+Let's download the `iris` dataset from `RDatasets`, and quickly
 compute some summary statistics.
 
 ```julia
@@ -208,63 +213,28 @@ TableTex will automatically handle printing it in a way that is well
 aligned and can be read even from the raw tex file, and will align the
 multi-columns and multi-indexes for you.
 
-## TableCols
-
-The base unit of `TexTables` is the `TableCol` type -- it represents a
-header and an OrderedDict of keys and values using special indices that
-allow the user to easily combine tables together.
-
-Each entry of `cols` is it's own table, which we can view in the REPL:
+## Tabulate Function
+`TexTables` also provides a convenience `tabulate` function:
 ```julia
-julia> cols[1]
-     | Rating
---------------
-   N | 30
-Mean | 64.633
- Std | 12.173
- Min | 40
- Max | 85
+julia> tabulate(df, :Species)
+           | Freq. | Percent |  Cum.
+---------------------------------------
+    setosa |    50 |  33.333 |  33.333
+versicolor |    50 |  33.333 |  66.667
+ virginica |    50 |  33.333 | 100.000
+---------------------------------------
+     Total |   150 | 100.000 |
 ```
-However, we can easily join two or more of them together horizontally or
-vertically with the `hcat` and `vcat` functions.  The output will
-display in the REPL as a formatted ASCII table
-```julia
-julia> tab = hcat(cols...)
-     | Rating | Complaints | Privileges | Learning | Raises | Critical | Advance
----------------------------------------------------------------------------------
-   N |     30 |         30 |         30 |       30 |     30 |       30 |      30
-Mean | 64.633 |     66.600 |     53.133 |   56.367 | 64.633 |   74.767 |  42.933
- Std | 12.173 |     13.315 |     12.235 |   11.737 | 10.397 |    9.895 |  10.289
- Min |     40 |         37 |         30 |       34 |     43 |       49 |      25
- Max |     85 |         90 |         83 |       75 |     88 |       92 |      72
+In the future, I may add support for two way tables (it's a very easy
+extension).
 
-```
-
-## Exporting the Table to LaTeX
-
-Or, we can save the table as a formatted LaTeX table with the command
-```julia
-write_tex("mytable.tex", tab)
-```
-When we open this table, we will get a human-readable LaTeX table:
-
-```latex
-\begin{tabular}{r|ccccccc}
-\toprule
-     & Rating & Complaints & Privileges & Learning & Raises & Critical & Advance \\ \hline
-   N &     30 &         30 &         30 &       30 &     30 &       30 &      30 \\
-Mean & 64.633 &     66.600 &     53.133 &   56.367 & 64.633 &   74.767 &  42.933 \\
- Std & 12.173 &     13.315 &     12.235 &   11.737 & 10.397 &    9.895 &  10.289 \\
- Min &     40 &         37 &         30 &       34 &     43 &       49 &      25 \\
- Max &     85 &         90 &         83 &       75 &     88 &       92 &      72 \\
-\bottomrule
-\end{tabular}
-```
 ## StatsModels Integrations
 
-Let's say that we want to run a few regressions on this data:
+Let's say that we want to run a few regressions on some data that we
+happened to come by:
 ```julia
 using StatsModels, GLM
+df = dataset("datasets", "attitude")
 m1 = lm(@formula( Rating ~ 1 + Raises ), df)
 m2 = lm(@formula( Rating ~ 1 + Raises + Learning), df)
 m3 = lm(@formula( Rating ~ 1 + Raises + Learning + Privileges), df)
