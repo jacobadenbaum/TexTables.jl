@@ -243,7 +243,7 @@ commands:
 ```latex
 \begin{tabular}{r|ccc|cc}
 \toprule
-            & \multicolumn{3}{c}{Group 1}    & \multicolumn{2}{c}{Group 2} \\
+            & \multicolumn{3}{c}{Group 1}    & \multicolumn{2}{c}{Group 2}\\
             & (1)      & (2)      & (3)      & (1)         & (2)          \\ \hline
 (Intercept) &   19.978 &   15.809 &   14.167 &      11.834 &       11.011 \\
             & (11.688) & (11.084) & (11.519) &     (8.535) &     (11.704) \\

@@ -3,6 +3,8 @@ import  TexTables:  TableIndex, TableDict
 using   DataStructures
 using   Base.Test
 
+include("helper.jl")
+
 tests = ["tablecol", "composite_tables", "indexing", "printing" ]
 
 @testset "TexTables" begin

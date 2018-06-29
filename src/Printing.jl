@@ -457,8 +457,12 @@ function head(printer::TablePrinter{N,M}) where {N,M}
 
         # Add whitespace to account for the rowheader length, and add a
         # separator
-        output *= format("{:$rh_length}", "")
-        output *= pad_ws
+        for j=1:N
+            rhj     = rowheader_length(printer, j)
+            empty_row(t, j) && continue
+            output *= format("{:$rhj}", "")
+            output *= j < N ? pad_ws * sep * pad_ws : pad_ws
+        end
 
         # Write each header
         for (s, pair) in enumerate(col_schema[i])
@@ -540,9 +544,7 @@ function printline(printer::TablePrinter, i)
     inline   = se_pos == :inline
     below    = se_pos == :below
     if below & print_se
-        lh   = rowheader_length(printer)
-        line2= format("{:$lh}", "")
-        line2*= pad_ws
+        line2= rowheader(printer, i, empty=true)
     end
 
     for j = 1:m
@@ -574,7 +576,7 @@ function printline(printer::TablePrinter, i)
     return output
 end
 
-function rowheader(printer::TablePrinter{N,M}, i) where {N,M}
+function rowheader(printer::TablePrinter{N,M}, i; empty=false) where {N,M}
     t       =  printer.table
     pad     =  printer.params.pad
     pad_ws  =  " "^pad
@@ -594,17 +596,21 @@ function rowheader(printer::TablePrinter{N,M}, i) where {N,M}
         # Print the separator and the padding
         output *= ((j==1) || empty_row(t, j-1))  ? "" : sep * pad_ws
 
+        # Get length of rowheader for formatting
+        len     = rowheader_length(printer, j)
+
         # Print the name or whitespace depending on `print_name`
-        if print_name
+        if print_name & !empty
             # Check the size of the row if we're printing
-            block_size = schema_lookup(printer.row_schema[j], i)
+            block_size  = schema_lookup(printer.row_schema[j], i)
 
             # Add the row to the output
             name    = ridx[i].name[j]
-            output *= format_row_name(printer, j, block_size, name)
+            output *= format("{:>$len}",
+                             format_row_name(printer, j, block_size,
+                                             name))
         else
-            len     = rowheader_length(t, j)
-            output *= format("{:$len}", "")
+            output *= format("{:>$len}", "")
         end
 
         # Print the final padding
@@ -621,21 +627,20 @@ function schema_lookup(schema, i)
     # Find insertion point for i
     idx     = searchsortedfirst(counts, i)
 
+    # Return the block size at that point
+    return schema[idx].second
 end
 
 function format_row_name(printer::TablePrinter{N,M}, level::Int,
                          block_size::Int, name)::String where {N,M}
     @unpack table_type = printer.params
 
-    # Get the length
-    lh = rowheader_length(printer.table, level)
-
     if table_type == :ascii
         fname = string(name)
     elseif table_type == :latex
-        fname =  block_size > 0 ?  string(name) : mr(block_size,name)
+        fname =  block_size == 1 ?  string(name) : mr(block_size,name)
     end
-    return format("{:>$lh}", fname)
+    return string(fname)
 end
 
 """
@@ -690,13 +695,23 @@ show(io::IO, col::TableCol) = print(io, IndexedTable(col))
 
 size(t::IndexedTable)= (length(t.row_index), length(t.col_index))
 
-function rowheader_length(t::IndexedTable{N,M}, level::Int) where {N,M}
-    row_index = t.row_index
-    row_names = get_name(row_index)
-    lengths   = map(t.row_index) do idx
-        length(string(idx.name[level]))
+function rowheader_length(printer::TablePrinter, level::Int)
+    t           = printer.table
+    row_index   = t.row_index
+    row_names   = get_name(row_index)
+    row_schema  = printer.row_schema[level]
+    n, m        = size(t)
+
+    # Compute the max length
+    l = 0
+    for i=1:n
+        idx = t.row_index[i]
+        name  = idx.name[level]
+        bsize = schema_lookup(row_schema, i)
+        fname = format_row_name(printer, level, bsize, name)
+        l = max(l, length(fname))
     end
-    return maximum(lengths)
+    return l
 end
 
 """
@@ -719,7 +734,7 @@ function rowheader_length(printer::TablePrinter{N,M}) where {N,M}
     # Offset it by one since there's no leading space
     l = -total_pad
     for i=1:N
-        lh = rowheader_length(t, i)
+        lh = rowheader_length(printer, i)
         l += lh
         l += lh > 0 ? total_pad : 0
     end
