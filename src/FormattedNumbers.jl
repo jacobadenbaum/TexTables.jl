@@ -1,14 +1,30 @@
 function default_fmt(T::Type{S}) where {S}
     error("Format for $T is not defined")
 end
+"""
+Usage is: @fmt T = fmtstring
 
+Available types and their default formats are:
+    1. Real            "{:.3g}"
+    2. Int             "{:,n}"
+    3. Bool            "{:}"
+    4. AbstractString  "{:}"
+"""
 macro fmt(ex)
+    msg = """
+    Usage is: @fmt T = fmtstring
 
-    msg = "Syntax is: @fmt T = fmtstring"
+    Available types and their default formats are:
+        1. Real            "{:.3g}"
+        2. Int             "{:,n}"
+        3. Bool            "{:}"
+        4. AbstractString  "{:}"
+    """
     @assert(ex.head == :(=), msg)
     @assert(length(ex.args) == 2, msg)
     @assert(ex.args[1] isa Symbol, msg)
     @assert(isa(ex.args[2], String), msg)
+    @assert(ex.args[1] in [:Real, :Int, :Bool, :AbstractString], msg)
 
     ex1 = ex.args[1]
     ex2 = ex.args[2]
