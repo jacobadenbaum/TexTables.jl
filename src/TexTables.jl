@@ -1,3 +1,4 @@
+__precompile__()
 module TexTables
 
 # package code goes here
@@ -22,7 +23,7 @@ import Base: isless, ==
 import Base: getindex, size, hcat, vcat, convert, promote_rule
 import Base: show, size, print
 
-export summarize, tabulate
+export summarize, summarize_by, tabulate
 
 # Need this abstract type
 abstract type TexTable end

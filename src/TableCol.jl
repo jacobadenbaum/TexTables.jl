@@ -67,10 +67,6 @@ mutable struct TableCol{N,M} <: TexTable
     data::TableDict{N, FormattedNumber}
 end
 
-function TableCol(header::String)
-    return TableCol(header, TableDict())
-end
-
 TableCol(header::String) = TableCol(TableIndex(1, header),
                                     TableDict{1, FormattedNumber}())
 

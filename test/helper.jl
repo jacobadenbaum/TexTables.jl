@@ -37,7 +37,7 @@ function compare_file(i::Int, fstring::String)
 end
 
 function export_table(i, fstring::String)
-    open(joinpath(resource_path(), test_table(i)), "w") do f
+    open(test_table(i), "w") do f
         write(f, fstring)
     end
 end

@@ -133,7 +133,7 @@ join_table(t1::IndexedTable) = t1
 function join_table(t1::TexTable, t2::TexTable)
 
     # Promote to the same dimensions
-    t1, t2 = promote(convert.(IndexedTable, (t1, t2)))
+    t1, t2 = promote(convert.(IndexedTable, (t1, t2))...)
 
     t1_new = add_col_level(t1, 1)
     t2_new = add_col_level(t2, 2)
@@ -201,8 +201,8 @@ end
 # Appending on Pairs
 function append_table(p1::Pair{P1,T1}) where {P1 <: Printable,
                                       T1 <: TexTable}
-    t1      = convert(IndexedTable, p1.first)
-    t1_new  = add_row_level(p1.second, 1, t1)
+    t1      = convert(IndexedTable, p1.second)
+    t1_new  = add_row_level(p1.second, 1, p1.first)
 end
 
 function append_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
