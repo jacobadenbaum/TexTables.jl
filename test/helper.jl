@@ -21,7 +21,7 @@ end
 Generates the path to test table `i`
 """
 function test_table(i)
-    return joinpath("test", "resources", "test_table$i.txt")
+    return joinpath("resources", "test_table$i.txt")
 end
 
 function compare_file(i::Int, fstring::String)
@@ -29,7 +29,7 @@ function compare_file(i::Int, fstring::String)
 end
 
 function export_table(i, fstring::String)
-    open(test_table(i), "w") do f
+    open(joinpath("test", test_table(i)), "w") do f
         write(f, fstring)
     end
 end
