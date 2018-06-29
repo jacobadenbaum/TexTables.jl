@@ -180,20 +180,20 @@ function name_lookup(col::TableCol{1,N}, x::Symbol) where N
 end
 
 function getindex(col::TableCol, x::TableIndex, backup="")
-    val, se = get_vals(col, x, backup)
-    l = get_length(col)
-    return format("{:<$l}", val), format("{:<$l}", se)
+    return get_vals(col, x, backup)
 end
 
-function get_length(col::TableCol)
-    # Get all the values
-    l = maximum(length.(string.(col.header.name)))
-    for key in keys(col.data)
-        val, se = get_vals(col, key)
-        l = max(l, length(val), length(se))
-    end
-    return l
-end
+# I don't think this is used.  Try to run the tests without it, then
+# remove.
+# function get_length(col::TableCol)
+#     # Get all the values
+#     l = maximum(length.(string.(col.header.name)))
+#     for key in keys(col.data)
+#         val, se = get_vals(col, key)
+#         l = max(l, length(val), length(se))
+#     end
+#     return l
+# end
 
 function setindex!(col::TableCol{1,N}, value, key::Printable) where N
     skey        = Symbol(key)

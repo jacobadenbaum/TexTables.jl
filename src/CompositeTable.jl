@@ -149,14 +149,14 @@ end
 # Joining on Pairs
 function join_table(p1::Pair{P1,T1}) where {P1 <: Printable,
                                       T1 <: TexTable}
-    t1      = convert(IndexedTable, p1.first)
+    t1      = convert(IndexedTable, p1.second)
     t1_new  = add_col_level(p1.second, 1, p1.first)
 end
 
 function join_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
     {P1 <: Printable, P2 <: Printable, T1 <: TexTable, T2<:TexTable}
 
-    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second)))
+    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second))...)
 
     t1_new = add_col_level(t1, 1, p1.first)
     t2_new = add_col_level(t2, 2, p2.first)
@@ -208,7 +208,7 @@ end
 function append_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
     {P1 <: Printable, P2 <: Printable, T1 <: TexTable, T2<:TexTable}
 
-    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second)))
+    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second))...)
     t1_new = add_row_level(t1, 1, p1.first)
     t2_new = add_row_level(t2, 2, p2.first)
 
@@ -423,7 +423,7 @@ function loc(t::IndexedTable{N,M},
 end
 
 function locate(index::Vector{TableIndex{N}}, idx::TableIndex{N}) where N
-    return findin(idx, index)
+    return find(index .== idx)
 end
 
 function locate(index::Vector{TableIndex{N}}, idx) where N

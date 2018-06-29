@@ -24,12 +24,6 @@
         @test strip.(col[:key3]) == ("0.500", "")
         @test strip.(col[:key4]) == ("0.250", "(0.100)")
         @test strip.(col[:key5]) == ("foo", "")
-
-        # Check that all of the indexed values have the same length
-        index = keys(data) |> collect
-        vals  = [col[key] for key in index]
-        lens  = map(x->length.(x), vals)
-        @test all(map(x->x==lens[1], lens))
     end
 
     @testset "IndexedTable Indexing" begin
@@ -144,5 +138,38 @@
         @test strip.(tab[(1,:key8 ), "test3"]) == ("-0.272", "(0.608)")
         @test strip.(tab[(1,:key9 ), "test3"]) == ("0.502" , "(0.269)")
         @test strip.(tab[(1,:key10), "test3"]) == ("-0.517", "(1.226)")
+    end
+
+    @testset "IndexedTable Indexing" begin
+        # Baseline check
+        srand(1234)
+        x  = randn(10)
+        y  = [Symbol(:key, i) for i=1:10]
+        t1 = TableCol("test", y, x) |> IndexedTable
+        t2 = TableCol("test2", y[2:9], x[2:9]) |> IndexedTable
+        t3 = TableCol("test3", y, x, randn(10).|>abs.|>sqrt) |> IndexedTable
+        t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes")) |> IndexedTable
+        t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))  |> IndexedTable
+        t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes")) |> IndexedTable
+        c1 = append_table(t1, t4)
+        c2 = append_table(t2, t5)
+        c3 = append_table(t3, t6)
+
+        # Put them together in several different multi-leveled ways
+        tab     = [c1 c2 c3]
+        # tab2    = join_table("group 1"=>[c1, c2], "group 3"=>c3)
+        # tab3    = join_table("group 1"=>c1, "group2"=>c2, "group3"=>c3)
+        # tab4    = join_table("BIG GROUP 1"=>tab, "BIG GROUP 2"=>tab3)
+
+        # Check that the indexing is consistent between the TableCols
+        # and the IndexedTable:
+        for t in [t1, t2, t3, t4, t5, t6, c1, c2, c3, tab]
+            n, m = size(t)
+            for i=1:n, j=1:m
+                ridx = t.row_index[i]
+                cidx = t.col_index[j]
+                @test t[ridx, cidx] == t.columns[j][ridx]
+            end
+        end
     end
 end

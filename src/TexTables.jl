@@ -19,7 +19,7 @@ export IndexedTable, append_table, join_table, promote_rule
 import Base.getindex, Base.setindex!, Base.push!
 import Base: isless, ==
 import Base: getindex, size, hcat, vcat, convert, promote_rule
-import Base: show, size
+import Base: show, size, print
 
 # Need this abstract type
 abstract type TexTable end

@@ -1,3 +1,6 @@
+import TexTables:   get_level, generate_schema, check_table_type,
+                    default_sep, schema_lookup
+
 @testset "Extracting Index Levels" begin
     # Standard Composite Tables
     srand(1234)
@@ -63,8 +66,35 @@ end
     @test generate_schema(c3.row_index,1)==generate_schema(c1.row_index,1)
     @test generate_schema(c3.row_index,2)==generate_schema(c1.row_index,2)
     @test_throws BoundsError generate_schema(c3.row_index, 3)
+
+    s = generate_schema(c2.row_index, 1)
+    @test schema_lookup(s, 1) == 1
+    @test schema_lookup(s, 8) == 1
+    @test schema_lookup(s, 9) == 2
+
+    s = generate_schema(c2.row_index, 2)
+    @test schema_lookup(s, 1) == 1
+    @test schema_lookup(s, 8) == 8
+    @test schema_lookup(s, 9) == 9
+
+
 end
 
+@testset "Argument Checking" begin
+    @test check_table_type(:ascii) == nothing
+    @test check_table_type(:latex) == nothing
+    @test_throws ArgumentError check_table_type(:html)
+    @test_throws ArgumentError check_table_type("ascii")
+    @test_throws ArgumentError check_table_type("latex")
+    @test_throws ArgumentError check_table_type(5)
+    @test_throws ArgumentError check_table_type(5.0)
+end
+
+@testset "table_type Defaults" begin
+    @test default_sep(:ascii) == "|"
+    @test default_sep(:latex) == "&"
+    @test_throws ArgumentError default_sep("ascii")
+end
 
 # c1_a = TableCol("Column 1",
 #                 OrderedDict("Row 1"=>1,
