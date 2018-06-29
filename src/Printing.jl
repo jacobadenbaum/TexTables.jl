@@ -749,7 +749,7 @@ function print(io::IO, p::TablePrinter)
     print(io, head(p)*body(p)*foot(p))
 end
 
-function print(io::IO, t::IndexedTable; kwargs...)
+function print(io::IO, t::IndexedTable{N,M}; kwargs...) where {N,M}
     if all(size(t) .> 0)
         # Construct the printer
         printer = TablePrinter(t; kwargs...)
