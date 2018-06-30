@@ -8,9 +8,7 @@
    Learning &          &    0.432 &    0.394 \\
             &          &  (0.193) &  (0.204) \\
  Privileges &          &          &    0.105 \\
-            &          &          &  (0.168) \\
- Complaints &          &          &          \\
-   Critical &          &          &          \\ \hline
+            &          &          &  (0.168) \\ \hline
           N &       30 &       30 &       30 \\
       $R^2$ &    0.348 &    0.451 &    0.459 \\
 \bottomrule

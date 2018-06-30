@@ -1,0 +1,9 @@
+\begin{tabular}{r|ccc}
+\toprule
+           & Freq. & Percent & Cum.    \\ \hline
+    setosa &    50 &  33.333 &  33.333 \\
+versicolor &    50 &  33.333 &  66.667 \\
+ virginica &    50 &  33.333 & 100.000 \\ \hline
+     Total &   150 & 100.000 &         \\
+\bottomrule
+\end{tabular}
