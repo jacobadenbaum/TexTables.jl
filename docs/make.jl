@@ -1,6 +1,9 @@
 using Documenter
 using TexTables
 
+# Install Dependencies
+Pkg.add("RDatasets")
+
 makedocs(
     modules = [TexTables],
     sitename= "TexTables.jl",
@@ -18,6 +21,7 @@ makedocs(
 # for more information.
 deploydocs(
     repo   = "github.com/jacobadenbaum/TexTables.jl.git",
+    julia  = "0.6",
     target = "build",
     deps   = nothing,
     make   = nothing

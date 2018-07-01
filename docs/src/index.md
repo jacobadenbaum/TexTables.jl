@@ -13,7 +13,7 @@ for people who want to make their own custom tables, but it has implemented
 support for some basic regression tables, cross-tabulations, and summary
 statistics as proof-of-concept.
 
-# Installation
+## Installation
 
 TexTables is not yet registered, so it can be installed by cloning it
 from the repository.
