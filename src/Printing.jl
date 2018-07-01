@@ -316,16 +316,17 @@ Returns the maximum length of the column entries, not accounting for the
 header columns
 """
 function col_length(p::TablePrinter, col::TableCol)
-    @unpack pad, se_pos = p.params
+    @unpack pad, se_pos, star = p.params
     l = 0
     for key in keys(col.data)
-        val, se = get_vals(col, key)
+        val, se, stars = get_vals(col, key)
+        sl  = star ? length(stars) : 0
         if se_pos == :below
-            l = max(l, length(val), length(se))
+            l = max(l, length(val) + sl, length(se))
         elseif se_pos == :inline
-            l = max(l, length(val) + pad + length(se))
+            l = max(l, length(val) + sl + pad + length(se))
         elseif se_pos == :none
-            l = max(l, length(val))
+            l = max(l, length(val) + sl)
         end
     end
     return l
@@ -501,8 +502,8 @@ corresponding to row index `ridx` have nonempty standard errors.
 function empty_se(t::IndexedTable, ridx)
     n, m = size(t)
     for j=1:m
-        cidx    = t.col_index[j]
-        val, se = t[ridx, cidx]
+        cidx          = t.col_index[j]
+        val, se, star = get_vals(t, ridx, cidx)
         isempty(se) || return false
     end
     return true
@@ -530,7 +531,7 @@ function printline(printer::TablePrinter, i)
     sep     =  printer.params.sep
     sep_len =  length(sep)
 
-    @unpack se_pos  =  printer.params
+    @unpack se_pos, star  =  printer.params
 
     # Get the column lengths, column schema, block width schema, and
     # rowheader length
@@ -549,7 +550,7 @@ function printline(printer::TablePrinter, i)
 
     for j = 1:m
         cidx    = t.col_index[j]
-        val, se = t[ridx, cidx]
+        val, se, stars = get_vals(t, ridx, cidx)
 
         # Are we printing the standard errors?
         use_se  = inline & print_se
@@ -557,6 +558,7 @@ function printline(printer::TablePrinter, i)
         # Format and Print the value
         output  *= sep * pad_ws
         entry    = val
+        entry   *= star ? stars : ""
         entry   *= use_se       ?
                    pad_ws * se  :
                    ""

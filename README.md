@@ -249,83 +249,49 @@ We can construct a single column for any one of these with the
 julia> t1 = TableCol("(1)", m1)
             |   (1)
 -----------------------
-(Intercept) |   19.978
+(Intercept) |  19.978*
             | (11.688)
-     Raises |    0.691
+     Raises | 0.691***
             |  (0.179)
 -----------------------
           N |       30
       $R^2$ |    0.348
 ```
-We can combine them together with their own special names
+But in general, it is easier to just use the `regtable` function when
+combining several different models:
 ```julia
-julia> reg_table = hcat(TableCol("(1)", m1),
-                        TableCol("(2)", m2),
-                        TableCol("(3)", m3),
-                        TableCol("(4)", m4),
-                        TableCol("(5)", m5))
-            |   (1)    |   (2)    |   (3)    |   (4)   |   (5)
-------------------------------------------------------------------
-(Intercept) |   19.978 |   15.809 |   14.167 |  11.834 |   11.011
-            | (11.688) | (11.084) | (11.519) | (8.535) | (11.704)
-     Raises |    0.691 |    0.379 |    0.352 |  -0.026 |   -0.033
-            |  (0.179) |  (0.217) |  (0.224) | (0.184) |  (0.202)
-   Learning |          |    0.432 |    0.394 |   0.246 |    0.249
-            |          |  (0.193) |  (0.204) | (0.154) |  (0.160)
- Privileges |          |          |    0.105 |  -0.103 |   -0.104
-            |          |          |  (0.168) | (0.132) |  (0.135)
- Complaints |          |          |          |   0.691 |    0.692
-            |          |          |          | (0.146) |  (0.149)
-   Critical |          |          |          |         |    0.015
-            |          |          |          |         |  (0.147)
-------------------------------------------------------------------
-          N |       30 |       30 |       30 |      30 |       30
-      $R^2$ |    0.348 |    0.451 |    0.459 |   0.715 |    0.715
+julia> reg_table = regtable(m1, m2, m3, m4, m5)
+            |   (1)    |   (2)    |   (3)    |   (4)    |   (5)
+-------------------------------------------------------------------
+(Intercept) |  19.978* |   15.809 |   14.167 |   11.834 |   11.011
+            | (11.688) | (11.084) | (11.519) |  (8.535) | (11.704)
+     Raises | 0.691*** |   0.379* |    0.352 |   -0.026 |   -0.033
+            |  (0.179) |  (0.217) |  (0.224) |  (0.184) |  (0.202)
+   Learning |          |  0.432** |   0.394* |    0.246 |    0.249
+            |          |  (0.193) |  (0.204) |  (0.154) |  (0.160)
+ Privileges |          |          |    0.105 |   -0.103 |   -0.104
+            |          |          |  (0.168) |  (0.132) |  (0.135)
+ Complaints |          |          |          | 0.691*** | 0.692***
+            |          |          |          |  (0.146) |  (0.149)
+   Critical |          |          |          |          |    0.015
+            |          |          |          |          |  (0.147)
+-------------------------------------------------------------------
+          N |       30 |       30 |       30 |       30 |       30
+      $R^2$ |    0.348 |    0.451 |    0.459 |    0.715 |    0.715
 ```
 
 Currently, `TexTables` works with several standard regression packages
 in the `StatsModels` family to construct custom coefficient tables.
 I've mostly implemented these as proof of concept, since I'm not sure
-how best to proceed on extending it to more model types.
+how best to proceed on extending it to more model types.  By default,
+`TexTables` will display significance stars using p-value thresholds of
+0.1 for 1 star, 0.05 for 2 stars, and 0.01 for 3 stars (as is standard).
 
 I think that I may spin these off into a "formulas" package at some
 point in the future.
 
-## Display Options
-
-You can recover the string output using the functions `to_latex` and
-`to_ascii`.  But, it is also possible to tweak the layout of the tables
-by passing keyword arguments to the `print`, `show`, `to_tex`, or
-`to_ascii` functions.  For instance, if you would like to display your
-standard errors on the same row as the coefficients, you can do so with
-the `se_pos` argument:
-```julia
-julia> print(to_ascii(hcat( TableCol("(1)", m1), TableCol("(2)", m2)),
-                      se_pos=:inline))
-            |       (1)       |       (2)
-------------------------------------------------
-(Intercept) | 19.978 (11.688) | 15.809 (11.084)
-     Raises |   0.691 (0.179) |   0.379 (0.217)
-   Learning |                 |   0.432 (0.193)
-------------------------------------------------
-          N |              30 |              30
-      $R^2$ |           0.348 |           0.451
-```
-
-Currently, `TexTables` supports the following display options:
-1.  `pad`::Int (default 1)
-        The number of spaces to pad the separator characters on each side.
-2.  `se_pos`::Symbol (default :below)
-    1.  :below -- Prints standard errors in parentheses on a second line
-        below the coefficients
-    2.  :inline -- Prints standard errors in parentheses on the same
-        line as the coefficients
-    3.  :none -- Supresses standard errors.  (I don't know why you would
-        want to do this... you probably shouldn't ever use it.)
-
-In the very near future, I will be adding support for stars for
-p-values, and it should be fairly easy to add custom table styles that
-are particular to any given journal's requirements.
+If you are interested in integrating `TexTables` into your regression
+package, please see the topic below under "Advanced Usage."
 
 ## Row and Column Blocks
 
@@ -339,11 +305,8 @@ together under a single heading, and the last two were separate.  We
 could instead construct each group separately and then combine them
 together with the `join_table` function:
 ```julia
-group1 = hcat(  TableCol("(1)", m1),
-                TableCol("(2)", m2),
-                TableCol("(3)", m3))
-group2 = hcat(  TableCol("(1)", m4),
-                TableCol("(2)", m5))
+group1 = regtable(m1, m2, m3)
+group2 = regtable(m4, m5)
 grouped_table = join_table( "Group 1"=>group1,
                             "Group 2"=>group2)
 ```
@@ -370,13 +333,36 @@ julia> grouped_table = join_table( "Group 1"=>group1,
           N |       30 |       30 |       30 |      30 |       30
       $R^2$ |    0.348 |    0.451 |    0.459 |   0.715 |    0.715
 ```
+If instead, we wanted to maintain a consistent numbering from (1)-(5),
+we could do it using the `regtable` function:
+```julia
+julia> regtable("Group 1"=>(m1, m2, m3), "Group 2"=>(m4, m5))
+            |            Group 1             |       Group 2
+            |   (1)    |   (2)    |   (3)    |   (4)    |   (5)
+-------------------------------------------------------------------
+(Intercept) |  19.978* |   15.809 |   14.167 |   11.834 |   11.011
+            | (11.688) | (11.084) | (11.519) |  (8.535) | (11.704)
+     Raises | 0.691*** |   0.379* |    0.352 |   -0.026 |   -0.033
+            |  (0.179) |  (0.217) |  (0.224) |  (0.184) |  (0.202)
+   Learning |          |  0.432** |   0.394* |    0.246 |    0.249
+            |          |  (0.193) |  (0.204) |  (0.154) |  (0.160)
+ Privileges |          |          |    0.105 |   -0.103 |   -0.104
+            |          |          |  (0.168) |  (0.132) |  (0.135)
+ Complaints |          |          |          | 0.691*** | 0.692***
+            |          |          |          |  (0.146) |  (0.149)
+   Critical |          |          |          |          |    0.015
+            |          |          |          |          |  (0.147)
+-------------------------------------------------------------------
+          N |       30 |       30 |       30 |       30 |       30
+      $R^2$ |    0.348 |    0.451 |    0.459 |    0.715 |    0.715
+```
 And in latex, the group labels will be displayed with `\multicolumn`
 commands:
 ```latex
 \begin{tabular}{r|ccc|cc}
 \toprule
             & \multicolumn{3}{c}{Group 1}    & \multicolumn{2}{c}{Group 2}\\
-            & (1)      & (2)      & (3)      & (1)         & (2)          \\ \hline
+            & (1)      & (2)      & (3)      & (4)         & (5)          \\ \hline
 (Intercept) &   19.978 &   15.809 &   14.167 &      11.834 &       11.011 \\
             & (11.688) & (11.084) & (11.519) &     (8.535) &     (11.704) \\
      Raises &    0.691 &    0.379 &    0.352 &      -0.026 &       -0.033 \\
@@ -398,6 +384,61 @@ The vertical analogue of `join_table` is the function `append_table`.
 Both will also accept the table objects as arguments instead of pairs if
 you want to construct the row/column groups without adding a visible
 multi-index.
+
+## Display Options
+
+You can recover the string output using the functions `to_latex` and
+`to_ascii`.  But, it is also possible to tweak the layout of the tables
+by passing keyword arguments to the `print`, `show`, `to_tex`, or
+`to_ascii` functions.  For instance, if you would like to display your
+standard errors on the same row as the coefficients, you can do so with
+the `se_pos` argument:
+```julia
+julia> print(to_ascii(hcat( TableCol("(1)", m1), TableCol("(2)", m2)),
+                      se_pos=:inline))
+            |       (1)        |       (2)
+-------------------------------------------------
+(Intercept) | 19.978* (11.688) | 15.809 (11.084)
+     Raises | 0.691*** (0.179) |  0.379* (0.217)
+   Learning |                  | 0.432** (0.193)
+-------------------------------------------------
+          N |               30 |              30
+      $R^2$ |            0.348 |           0.451
+```
+
+Similarly, if you want to print a table without showing the significance
+stars, then simply pass the keyword argument `star=false`:
+
+```julia
+julia> print(to_ascii(hcat( TableCol("(1)", m1), TableCol("(2)", m2)),
+                      star=false))
+            |   (1)    |   (2)
+----------------------------------
+(Intercept) |   19.978 |   15.809
+            | (11.688) | (11.084)
+     Raises |    0.691 |    0.379
+            |  (0.179) |  (0.217)
+   Learning |          |    0.432
+            |          |  (0.193)
+----------------------------------
+          N |       30 |       30
+      $R^2$ |    0.348 |    0.451
+
+```
+
+Currently, `TexTables` supports the following display options:
+1.  `pad::Int` (default `1`)
+        The number of spaces to pad the separator characters on each side.
+2.  `se_pos::Symbol` (default `:below`)
+    1.  :below -- Prints standard errors in parentheses on a second line
+        below the coefficients
+    2.  :inline -- Prints standard errors in parentheses on the same
+        line as the coefficients
+    3.  :none -- Supresses standard errors.  (I don't know why you would
+        want to do this... you probably shouldn't ever use it.)
+3.  `star::Bool` (default `true`)
+        If true, then prints any table entries that have been decorated
+        with significance stars with the appropriate number of stars.
 
 # Advanced Usage
 
@@ -541,6 +582,83 @@ julia> se_dict2= OrderedDict(Pair.(key, se));
 julia> t3 == TableCol("Column 2",dict2, se_dict2) == TableCol("Column 2", se_dict1)
 true
 ```
+
+## Integrating `TexTables` into your own Estimation Package
+
+Once you know how you would like your model's regression tables to look, it is
+extremely easy to built it with `TexTables`.  For instance, the code to
+integrate `TexTables` with some of the basic StatsModels.jl
+`LinearModel` types is extremely short, and quite instructive to
+examine:
+```julia
+
+varnames(m::LinearModel) = m.pp.X
+varnames(m::DataFrameRegressionModel) = coefnames(m.mf)
+
+tt(m::LinearModel)                  = coef(m) ./ stderror(m)
+tt(m::DataFrameRegressionModel)     = coef(m) ./ stderror(m)
+pval(m::LinearModel)                = ccdf.(FDist(1, dof_residual(m)),
+                                            abs2.(tt(m)))
+pval(m::DataFrameRegressionModel)   = ccdf.(FDist(1, dof_residual(m)),
+                                            abs2.(tt(m)))
+```
+Here, we just define some easy accessor methods (internal to
+`TexTables`).  Once this is done, the actual code to construct the
+tables is only 16 lines, and is extremely straightforward:
+```julia
+function TableCol(header, m::Union{LinearModel, DataFrameRegressionModel}
+                  stats=(:N=>Int∘nobs, "\$R^2\$"=>r2))
+
+    coef_block = TableCol(header)
+    for (name, val, se, pval) in zip(varnames(m), coef(m), stderror(m),
+                                      pval(m))
+        coef_block[name] = val, se
+        0.05 <  pval <= .1  && star!(coef_block[name], 1)
+        0.01 <  pval <= .05 && star!(coef_block[name], 2)
+                pval <= .01 && star!(coef_block[name], 3)
+    end
+
+    stats_pairs = OrderedDict(p.first=>p.second(m) for p in stats)
+    stats_block = TableCol(header, stats_pairs)
+
+    return append_table(coef_block, stats_block)
+end
+```
+Here, we
+1. Constructed an empty column with the header value passed by the user
+2. Looped through the coefficients, their names, their standard
+   errors, and their pvalues.  On each iteration, we:
+
+   a.  Insert the coefficient value and its standard error into the table
+
+   b.  Check whether the p-values fall below the desired threshold (in
+       descending order), and if so, call the function
+       `star!(x::FormattedNumber, num_stars)` with the desired number of
+       stars.
+
+`TexTables` stores all of the table values internally with a
+`FormattedNumber` type, which contains the value, the standard error if
+appropriate, the number of stars the value should display, and a
+formatting string.  As a result, it is probably easiest to set the table
+value first, and then add stars later with the `star!` function.
+However, we could also have constructed each value directly as:
+```julia
+if .05 < pval <= .1
+    coef_block[name] = val, se, 1
+elseif 0.01 < pval <= .05
+    coef_block[name] = val, se, 2
+elseif pval <= .01
+    coef_block[name] = val, se, 3
+end
+```
+How you choose to do it is mostly a matter of taste and coding style.
+Note that by default, the number of stars is always set to zero.  In
+other words, `TexTables` will _not_ assume that it can infer the number
+of significance stars from the standard errors and the coefficients
+alone.  If you want to annotate your table with significance stars, you
+must explicitly choose in your model-specific code which entries to
+annotate and how many stars they should have.
+
 ## A word of caution about merging tables
 
 Be careful when you are stacking tables: `TexTables` does not stack them
