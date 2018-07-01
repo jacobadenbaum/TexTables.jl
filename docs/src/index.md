@@ -129,12 +129,15 @@ to_tex(grouped_table) |> print
 \bottomrule
 \end{tabular}
 ```
-As you can see, higher level groupings will be separated with vertical bars, and
-their headings will be printed as `\multicolumn` environments.
+It's as simple as that.  As you can see, higher level groupings will be
+separated with vertical bars, and their headings will be printed as
+`\multicolumn` environments.  In tables with row-groupings, TexTables will
+automatically use `\multirow` environments.  TableTex will automatically handle
+printing it in a way that is well aligned and can be read even from the raw tex
+file, and will align the multi-columns and multi-indexes for you.
 
 You can write the table to a tex file yourself, or you can use the convenience
 wrapper `write_tex(fpath::String, t::TexTable)`.
-
 
 ## Summary Tables
 
