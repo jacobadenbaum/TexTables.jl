@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/jacobadenbaum/TexTables.jl/badge.svg?branch=master)](https://coveralls.io/github/jacobadenbaum/TexTables.jl?branch=master)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://jacobadenbaum.github.io/TexTables.jl/latest)
 
-The TexTable package provides an easy way for Julia users to quickly
+The TexTables package provides an easy way for Julia users to quickly
 build well-formated and publication-ready ASCII and LaTeX tables from a
 variety of different data structures.  It allows the user to easily
 build complex tables from small, modular components in an object
