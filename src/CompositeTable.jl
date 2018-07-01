@@ -19,17 +19,17 @@ end
 convert(::Type{IndexedTable}, t::TexTable) = IndexedTable(t)
 convert(::Type{IndexedTable}, t::IndexedTable) = t
 
-########################################################################
-#################### Merging and Concatenating #########################
-########################################################################
+################################################################################
+#################### Merging and Concatenating #################################
+################################################################################
 
 function vcat(t1::IndexedTable, t2::IndexedTable)
 
     # Promote to the same dimensions
     t1, t2 = deepcopy.(promote(t1, t2))
 
-    # Row Indices stay the same except within the highest group, where
-    # they need to be shifted up in order to keep the index unique
+    # Row Indices stay the same except within the highest group, where they need
+    # to be shifted up in order to keep the index unique
     shift       =   maximum(get_idx(t1.row_index, 1)) -
                     minimum(get_idx(t2.row_index, 1)) + 1
     new_index   = map(t2.row_index) do idx
@@ -234,9 +234,9 @@ end
 
 
 
-########################################################################
-#################### Conversion Between Dimensions #####################
-########################################################################
+################################################################################
+#################### Conversion Between Dimensions #############################
+################################################################################
 
 function promote_rule(::Type{IndexedTable{N1,M1}},
                       ::Type{IndexedTable{N2,M2}}) where
@@ -265,9 +265,9 @@ function convert(::Type{IndexedTable{N, M}}, t::IndexedTable{N0, M0}) where
     return t
 end
 
-########################################################################
-#################### General Indexing ##################################
-########################################################################
+################################################################################
+#################### General Indexing ##########################################
+################################################################################
 
 function insert_index!(index::Index{N}, idx::TableIndex{N}) where N
 
@@ -278,33 +278,24 @@ function insert_index!(index::Index{N}, idx::TableIndex{N}) where N
         insert!(index, range.start, idx)
         return idx, range.start
 
-    # Otherwise, check to see whether or not the last level matches
-    # already
+    # Otherwise, check to see whether or not the last level matches already
     else
 
         N_index = get_idx(index[range], N)
         N_names = get_name(index[range], N)
 
-        # If it does, then we don't have to do anything except check
-        # that the strings are right
+        # If it does, then we don't have to do anything except check that the
+        # strings are right
         if idx.name[N] in N_names
             loc = find(N_names .== idx.name[N])[1]
-
-            # if ! (N_names[loc] == idx.name)
-            #     throw(error(replace("""
-            #     The index is screwed up.  Have you been messing around
-            #     with the internals?  Don't do that.  Things need to be
-            #     sorted properly for this to work.
-            #     """, "\n", " ")))
-            # end
 
             # Here's the new index
             new_idx = update_index(idx, tuple(idx.idx[1:N-1]..., loc))
             return new_idx, range.start + loc - 1
         else
-            # Otherwise, it's not there so we need to insert it into the
-            # index, and its last integer level should be one higher
-            # than all the others
+            # Otherwise, it's not there so we need to insert it into the index,
+            # and its last integer level should be one higher than all the
+            # others
             new_idx = update_index(idx, tuple(idx.idx[1:N-1]...,
                                               maximum(N_index)+1))
 
@@ -336,11 +327,11 @@ end
 ```
 add_row_level(t::IndexedTable, level::Int, name::$Printable="")
 ```
-Add's a new level to the row index with the given `level` for the
-integer component of the index, and `name` for the symbol component
+Add's a new level to the row index with the given `level` for the integer
+component of the index, and `name` for the symbol component
 """
-function add_row_level(t::IndexedTable{N,M},
-                       level::Int, name::Printable="") where {N,M}
+function add_row_level(t::IndexedTable{N,M}, level::Int,
+                       name::Printable="") where {N,M}
 
     new_rows = add_level(t.row_index, level, name)
 
@@ -362,8 +353,8 @@ end
 ```
 add_col_level(t::IndexedTable, level::Int, name::$Printable="")
 ```
-Add's a new level to the column index with the given `level` for the
-integer component of the index, and `name` for the symbol component
+Add's a new level to the column index with the given `level` for the integer
+component of the index, and `name` for the symbol component
 """
 function add_col_level(t::IndexedTable{N,M},
                        level::Int, name::Printable="") where {N,M}
@@ -380,14 +371,12 @@ function add_col_level(t::IndexedTable{N,M},
     return IndexedTable(new_columns, t.row_index, new_cols)
 end
 
-add_row_level(t::TexTable, args...) = add_row_level(IndexedTable(t),
-                                                    args...)
-add_col_level(t::TexTable, args...) = add_col_level(IndexedTable(t),
-                                                    args...)
+add_row_level(t::TexTable, args...) = add_row_level(IndexedTable(t), args...)
+add_col_level(t::TexTable, args...) = add_col_level(IndexedTable(t), args...)
 
-########################################################################
-#################### Access Methods ####################################
-########################################################################
+################################################################################
+#################### Access Methods ############################################
+################################################################################
 
 Indexable{N}  = Union{TableIndex{N}, Tuple}
 Indexable1D   = Union{Printable, Integer}
@@ -400,8 +389,7 @@ function col_loc(t::IndexedTable{N,M}, idx::Indexable{N}) where {N,M}
     locate(t.col_index, idx)
 end
 
-function loc(t::IndexedTable{N,M},
-             ridx::Indexable{N},
+function loc(t::IndexedTable{N,M}, ridx::Indexable{N},
              cidx::Indexable{M}) where {N,M}
 
     rloc = locate(t.row_index, ridx)
@@ -410,13 +398,9 @@ function loc(t::IndexedTable{N,M},
     if isempty(rloc) | isempty(cloc)
         throw(KeyError("key ($ridx, $cidx) not found"))
     elseif length(rloc) > 1
-        throw(KeyError("""
-           $ridx does not uniquely identify a row
-           """))
+        throw(KeyError("$ridx does not uniquely identify a row"))
     elseif length(cloc) > 1
-        throw(KeyError("""
-            $cidx does not uniquely identify a column
-            """))
+        throw(KeyError("$cidx does not uniquely identify a column"))
     else
         return rloc[1], cloc[1]
     end
@@ -427,9 +411,7 @@ function locate(index::Vector{TableIndex{N}}, idx::TableIndex{N}) where N
 end
 
 function locate(index::Vector{TableIndex{N}}, idx) where N
-    length(idx) == N || throw(ArgumentError("""
-                        $idx does not have dimension $N
-                        """))
+    length(idx) == N || throw(ArgumentError("$idx does not have dimension $N"))
     return find(index) do x
         for i=1:N
             match_index(x, idx[i], i) || return false
@@ -438,13 +420,11 @@ function locate(index::Vector{TableIndex{N}}, idx) where N
     end
 end
 
-function match_index(index::TableIndex{N}, idx::Printable,
-                     level::Int) where N
+function match_index(index::TableIndex{N}, idx::Printable, level::Int) where N
     return index.name[level] == Symbol(idx)
 end
 
-function match_index(index::TableIndex{N}, idx::Int,
-                     level::Int) where N
+function match_index(index::TableIndex{N}, idx::Int, level::Int) where N
     return index.idx[level] == idx
 end
 
