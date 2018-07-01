@@ -608,6 +608,7 @@ Here, we
    errors, and their pvalues.  On each iteration, we:
 
    a.  Insert the coefficient value and its standard error into the table
+
    b.  Check whether the p-values fall below the desired threshold (in
        descending order), and if so, call the function
        `star!(x::FormattedNumber, num_stars)` with the desired number of
