@@ -257,7 +257,7 @@ julia> t1 = TableCol("(1)", m1)
           N |       30
       $R^2$ |    0.348
 ```
-We can combine them together with their own special names
+We can combine them together with their own names
 ```julia
 julia> reg_table = hcat(TableCol("(1)", m1),
                         TableCol("(2)", m2),
@@ -286,10 +286,15 @@ julia> reg_table = hcat(TableCol("(1)", m1),
 Currently, `TexTables` works with several standard regression packages
 in the `StatsModels` family to construct custom coefficient tables.
 I've mostly implemented these as proof of concept, since I'm not sure
-how best to proceed on extending it to more model types.
+how best to proceed on extending it to more model types.  By default,
+`TexTables` will display significance stars using p-value thresholds of
+0.1 for 1 star, 0.05 for 2 stars, and 0.01 for 3 stars (as is standard).
 
 I think that I may spin these off into a "formulas" package at some
 point in the future.
+
+If you are interested in integrating `TexTables` into your regression
+package, please see the topic below under "Advanced Usage."
 
 ## Display Options
 
