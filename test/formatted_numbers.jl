@@ -70,7 +70,7 @@ end
     @test sprint(show, FormattedNumber(1.0, 1e-3))  == "1.000 (0.001)"
     @test sprint(show, FormattedNumber(1.0, 1e-4))  == "1.000 (1.000e-04)"
     @test sprint(show, FormattedNumber(1.0, 1e4))   == "1.000 (10000.000)"
-    @test sprint(show, FormattedNumber(1.0, 1e5))   == "1.000 (1.000e05)"
+    @test sprint(show, FormattedNumber(1.0, 1e5))   == "1.000 (1.000e+05)"
 
     @test sprint(show, FormattedNumber(1.0, NaN))   == "1.000"
 end
