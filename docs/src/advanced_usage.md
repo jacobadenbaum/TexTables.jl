@@ -4,7 +4,6 @@ These sections are for advanced users who are interested in fine-tuning
 their own custom tables or integrating `TexTables` into their packages.
 
 ## Building Tables from Scratch
-t
 The core object when constructing tables with `TexTables` is the
 `TableCol` type.  This is just a wrapper around an `OrderedDict` and a
 header index, that enforces conversion of the header and the keys to

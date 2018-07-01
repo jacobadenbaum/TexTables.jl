@@ -12,6 +12,7 @@ makedocs(
     authors = "Jacob Adenbaum",
     pages   = [
               "Introduction"=>  "index.md",
+              "Easy Examples"=> "easy_examples.md",
               "Basic Usage" =>  "basic_usage.md",
               "Advanced Usage"=>"advanced_usage.md"]
 )
