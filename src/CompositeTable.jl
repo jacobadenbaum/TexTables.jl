@@ -26,7 +26,7 @@ convert(::Type{IndexedTable}, t::IndexedTable) = t
 function vcat(t1::IndexedTable, t2::IndexedTable)
 
     # Promote to the same dimensions
-    t1, t2 = promote(t1, t2)
+    t1, t2 = deepcopy.(promote(t1, t2))
 
     # Row Indices stay the same except within the highest group, where
     # they need to be shifted up in order to keep the index unique
@@ -76,7 +76,7 @@ end
 function hcat(t1::IndexedTable, t2::IndexedTable)
 
     # Promote to the same dimensions
-    t1, t2 = promote(t1, t2)
+    t1, t2 = deepcopy.(promote(t1, t2))
 
     # Column Indices stay the same except within the highest group,
     # where they need to be shifted up in order to keep the index unique
@@ -469,4 +469,9 @@ end
 
 function getindex(t::IndexedTable, row::Indexable1D, col::Indexable)
     return t[tuple(row), col]
+end
+
+# Getvals
+function get_vals(t::IndexedTable, row, col)
+    get_vals(t[row, col])
 end

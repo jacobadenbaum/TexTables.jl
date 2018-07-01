@@ -1,3 +1,4 @@
+gv = get_vals
 
 @testset "getindex" begin
     @testset "TableCol Indexing" begin
@@ -12,18 +13,18 @@
         col = TableCol(name, data)
 
         # Indexing Returns a Tuple of Formatted Values and Precisions
-        @test strip.(col["key1"]) == ("1", "")
-        @test strip.(col["key2"]) == ("2", "")
-        @test strip.(col["key3"]) == ("0.500", "")
-        @test strip.(col["key4"]) == ("0.250", "(0.100)")
-        @test strip.(col["key5"]) == ("foo", "")
+        @test strip.(col["key1"] |> gv) == ("1", "", "")
+        @test strip.(col["key2"] |> gv) == ("2", "", "")
+        @test strip.(col["key3"] |> gv) == ("0.500", "", "")
+        @test strip.(col["key4"] |> gv) == ("0.250", "(0.100)", "")
+        @test strip.(col["key5"] |> gv) == ("foo", "", "")
 
         # Indexing with Symbols
-        @test strip.(col[:key1]) == ("1", "")
-        @test strip.(col[:key2]) == ("2", "")
-        @test strip.(col[:key3]) == ("0.500", "")
-        @test strip.(col[:key4]) == ("0.250", "(0.100)")
-        @test strip.(col[:key5]) == ("foo", "")
+        @test strip.(col[:key1] |> gv) == ("1", "", "")
+        @test strip.(col[:key2] |> gv) == ("2", "", "")
+        @test strip.(col[:key3] |> gv) == ("0.500", "", "")
+        @test strip.(col[:key4] |> gv) == ("0.250", "(0.100)", "")
+        @test strip.(col[:key5] |> gv) == ("foo", "", "")
     end
 
     @testset "IndexedTable Indexing" begin
@@ -45,29 +46,29 @@
         c2 = append_table(t2, t5)
         c3 = append_table(t3, t6)
 
-        @test strip.(c1[ (1, :key1 ), "test"] )  == ("0.867" , "")
-        @test strip.(c1[ (1, :key2 ), "test"] )  == ("-0.902", "")
-        @test strip.(c1[ (1, :key3 ), "test"] )  == ("-0.494", "")
-        @test strip.(c1[ (1, :key4 ), "test"] )  == ("-0.903", "")
-        @test strip.(c1[ (1, :key5 ), "test"] )  == ("0.864" , "")
-        @test strip.(c1[ (1, :key6 ), "test"] )  == ("2.212" , "")
-        @test strip.(c1[ (1, :key7 ), "test"] )  == ("0.533" , "")
-        @test strip.(c1[ (1, :key8 ), "test"] )  == ("-0.272", "")
-        @test strip.(c1[ (1, :key9 ), "test"] )  == ("0.502" , "")
-        @test strip.(c1[ (1, :key10), "test"] )  == ("-0.517", "")
-        @test strip.(c1[(2, "Fixed Effects"), "test"]) == ("Yes", "")
+        @test strip.(c1[ (1, :key1 ), "test"] |> gv)  == ("0.867" , "", "")
+        @test strip.(c1[ (1, :key2 ), "test"] |> gv)  == ("-0.902", "", "")
+        @test strip.(c1[ (1, :key3 ), "test"] |> gv)  == ("-0.494", "", "")
+        @test strip.(c1[ (1, :key4 ), "test"] |> gv)  == ("-0.903", "", "")
+        @test strip.(c1[ (1, :key5 ), "test"] |> gv)  == ("0.864" , "", "")
+        @test strip.(c1[ (1, :key6 ), "test"] |> gv)  == ("2.212" , "", "")
+        @test strip.(c1[ (1, :key7 ), "test"] |> gv)  == ("0.533" , "", "")
+        @test strip.(c1[ (1, :key8 ), "test"] |> gv)  == ("-0.272", "", "")
+        @test strip.(c1[ (1, :key9 ), "test"] |> gv)  == ("0.502" , "", "")
+        @test strip.(c1[ (1, :key10), "test"] |> gv)  == ("-0.517", "", "")
+        @test strip.(c1[(2, "Fixed Effects"), "test"] |> gv) == ("Yes", "", "")
 
         # Check that indexing into the second column we constructed
         # works as expected
-        @test strip.(c2[ (1, :key2 ), "test2"] )  == ("-0.902", "")
-        @test strip.(c2[ (1, :key3 ), "test2"] )  == ("-0.494", "")
-        @test strip.(c2[ (1, :key4 ), "test2"] )  == ("-0.903", "")
-        @test strip.(c2[ (1, :key5 ), "test2"] )  == ("0.864" , "")
-        @test strip.(c2[ (1, :key6 ), "test2"] )  == ("2.212" , "")
-        @test strip.(c2[ (1, :key7 ), "test2"] )  == ("0.533" , "")
-        @test strip.(c2[ (1, :key8 ), "test2"] )  == ("-0.272", "")
-        @test strip.(c2[ (1, :key9 ), "test2"] )  == ("0.502" , "")
-        @test strip.(c2[(2, "Fixed Effects"), "test2"]) == ("No", "")
+        @test strip.(c2[ (1, :key2 ), "test2"] |> gv )  == ("-0.902", "", "")
+        @test strip.(c2[ (1, :key3 ), "test2"] |> gv )  == ("-0.494", "", "")
+        @test strip.(c2[ (1, :key4 ), "test2"] |> gv )  == ("-0.903", "", "")
+        @test strip.(c2[ (1, :key5 ), "test2"] |> gv )  == ("0.864" , "", "")
+        @test strip.(c2[ (1, :key6 ), "test2"] |> gv )  == ("2.212" , "", "")
+        @test strip.(c2[ (1, :key7 ), "test2"] |> gv )  == ("0.533" , "", "")
+        @test strip.(c2[ (1, :key8 ), "test2"] |> gv )  == ("-0.272", "", "")
+        @test strip.(c2[ (1, :key9 ), "test2"] |> gv )  == ("0.502" , "", "")
+        @test strip.(c2[(2, "Fixed Effects"), "test2"] |> gv) == ("No", "", "")
         @test_throws KeyError c2[ (1, :key1 ), "test2"]
         @test_throws KeyError c2[ (1, :key10), "test2"]
 
@@ -79,42 +80,42 @@
 
         # Check that indexing into IndexedTables works with standard
         # errors
-        @test strip.(c3[(1,:key1 ), "test3"]) == ("0.867" , "(0.749)")
-        @test strip.(c3[(1,:key2 ), "test3"]) == ("-0.902", "(0.139)")
-        @test strip.(c3[(1,:key3 ), "test3"]) == ("-0.494", "(0.358)")
-        @test strip.(c3[(1,:key4 ), "test3"]) == ("-0.903", "(1.361)")
-        @test strip.(c3[(1,:key5 ), "test3"]) == ("0.864" , "(0.910)")
-        @test strip.(c3[(1,:key6 ), "test3"]) == ("2.212" , "(0.332)")
-        @test strip.(c3[(1,:key7 ), "test3"]) == ("0.533" , "(0.501)")
-        @test strip.(c3[(1,:key8 ), "test3"]) == ("-0.272", "(0.608)")
-        @test strip.(c3[(1,:key9 ), "test3"]) == ("0.502" , "(0.269)")
-        @test strip.(c3[(1,:key10), "test3"]) == ("-0.517", "(1.226)")
+        @test strip.(c3[(1,:key1 ), "test3"] |> gv) == ("0.867" , "(0.749)", "")
+        @test strip.(c3[(1,:key2 ), "test3"] |> gv) == ("-0.902", "(0.139)", "")
+        @test strip.(c3[(1,:key3 ), "test3"] |> gv) == ("-0.494", "(0.358)", "")
+        @test strip.(c3[(1,:key4 ), "test3"] |> gv) == ("-0.903", "(1.361)", "")
+        @test strip.(c3[(1,:key5 ), "test3"] |> gv) == ("0.864" , "(0.910)", "")
+        @test strip.(c3[(1,:key6 ), "test3"] |> gv) == ("2.212" , "(0.332)", "")
+        @test strip.(c3[(1,:key7 ), "test3"] |> gv) == ("0.533" , "(0.501)", "")
+        @test strip.(c3[(1,:key8 ), "test3"] |> gv) == ("-0.272", "(0.608)", "")
+        @test strip.(c3[(1,:key9 ), "test3"] |> gv) == ("0.502" , "(0.269)", "")
+        @test strip.(c3[(1,:key10), "test3"] |> gv) == ("-0.517", "(1.226)", "")
 
         # Check that indexing into merged tables works right
         tab = [c1 c2 c3]
-        @test strip.(tab[ (1, :key1 ), "test"] )  == ("0.867" , "")
-        @test strip.(tab[ (1, :key2 ), "test"] )  == ("-0.902", "")
-        @test strip.(tab[ (1, :key3 ), "test"] )  == ("-0.494", "")
-        @test strip.(tab[ (1, :key4 ), "test"] )  == ("-0.903", "")
-        @test strip.(tab[ (1, :key5 ), "test"] )  == ("0.864" , "")
-        @test strip.(tab[ (1, :key6 ), "test"] )  == ("2.212" , "")
-        @test strip.(tab[ (1, :key7 ), "test"] )  == ("0.533" , "")
-        @test strip.(tab[ (1, :key8 ), "test"] )  == ("-0.272", "")
-        @test strip.(tab[ (1, :key9 ), "test"] )  == ("0.502" , "")
-        @test strip.(tab[ (1, :key10), "test"] )  == ("-0.517", "")
-        @test strip.(tab[(2, "Fixed Effects"), "test"]) == ("Yes", "")
+        @test strip.(tab[ (1, :key1 ), "test"] |> gv )  == ("0.867" , "", "")
+        @test strip.(tab[ (1, :key2 ), "test"] |> gv )  == ("-0.902", "", "")
+        @test strip.(tab[ (1, :key3 ), "test"] |> gv )  == ("-0.494", "", "")
+        @test strip.(tab[ (1, :key4 ), "test"] |> gv )  == ("-0.903", "", "")
+        @test strip.(tab[ (1, :key5 ), "test"] |> gv )  == ("0.864" , "", "")
+        @test strip.(tab[ (1, :key6 ), "test"] |> gv )  == ("2.212" , "", "")
+        @test strip.(tab[ (1, :key7 ), "test"] |> gv )  == ("0.533" , "", "")
+        @test strip.(tab[ (1, :key8 ), "test"] |> gv )  == ("-0.272", "", "")
+        @test strip.(tab[ (1, :key9 ), "test"] |> gv )  == ("0.502" , "", "")
+        @test strip.(tab[ (1, :key10), "test"] |> gv )  == ("-0.517", "", "")
+        @test strip.(tab[(2, "Fixed Effects"), "test"] |> gv) == ("Yes", "", "")
 
         # Check that indexing into the second column we constructed
         # works as expected
-        @test strip.(tab[ (1, :key2 ), "test2"] )  == ("-0.902", "")
-        @test strip.(tab[ (1, :key3 ), "test2"] )  == ("-0.494", "")
-        @test strip.(tab[ (1, :key4 ), "test2"] )  == ("-0.903", "")
-        @test strip.(tab[ (1, :key5 ), "test2"] )  == ("0.864" , "")
-        @test strip.(tab[ (1, :key6 ), "test2"] )  == ("2.212" , "")
-        @test strip.(tab[ (1, :key7 ), "test2"] )  == ("0.533" , "")
-        @test strip.(tab[ (1, :key8 ), "test2"] )  == ("-0.272", "")
-        @test strip.(tab[ (1, :key9 ), "test2"] )  == ("0.502" , "")
-        @test strip.(tab[(2, "Fixed Effects"), "test2"]) == ("No", "")
+        @test strip.(tab[ (1, :key2 ), "test2"] |> gv)  == ("-0.902", "", "")
+        @test strip.(tab[ (1, :key3 ), "test2"] |> gv)  == ("-0.494", "", "")
+        @test strip.(tab[ (1, :key4 ), "test2"] |> gv)  == ("-0.903", "", "")
+        @test strip.(tab[ (1, :key5 ), "test2"] |> gv)  == ("0.864" , "", "")
+        @test strip.(tab[ (1, :key6 ), "test2"] |> gv)  == ("2.212" , "", "")
+        @test strip.(tab[ (1, :key7 ), "test2"] |> gv)  == ("0.533" , "", "")
+        @test strip.(tab[ (1, :key8 ), "test2"] |> gv)  == ("-0.272", "", "")
+        @test strip.(tab[ (1, :key9 ), "test2"] |> gv)  == ("0.502" , "", "")
+        @test strip.(tab[(2, "Fixed Effects"), "test2"] |> gv ) == ("No", "", "")
 
         # Broken @test_throws
         # @test_throws KeyError tab[ (1, :key1 ), "test2"]
@@ -128,16 +129,16 @@
 
         # Check that indexing into IndexedTables works with standard
         # errors
-        @test strip.(tab[(1,:key1 ), "test3"]) == ("0.867" , "(0.749)")
-        @test strip.(tab[(1,:key2 ), "test3"]) == ("-0.902", "(0.139)")
-        @test strip.(tab[(1,:key3 ), "test3"]) == ("-0.494", "(0.358)")
-        @test strip.(tab[(1,:key4 ), "test3"]) == ("-0.903", "(1.361)")
-        @test strip.(tab[(1,:key5 ), "test3"]) == ("0.864" , "(0.910)")
-        @test strip.(tab[(1,:key6 ), "test3"]) == ("2.212" , "(0.332)")
-        @test strip.(tab[(1,:key7 ), "test3"]) == ("0.533" , "(0.501)")
-        @test strip.(tab[(1,:key8 ), "test3"]) == ("-0.272", "(0.608)")
-        @test strip.(tab[(1,:key9 ), "test3"]) == ("0.502" , "(0.269)")
-        @test strip.(tab[(1,:key10), "test3"]) == ("-0.517", "(1.226)")
+        @test strip.(tab[(1,:key1 ), "test3"] |> gv ) == ("0.867" , "(0.749)", "")
+        @test strip.(tab[(1,:key2 ), "test3"] |> gv ) == ("-0.902", "(0.139)", "")
+        @test strip.(tab[(1,:key3 ), "test3"] |> gv ) == ("-0.494", "(0.358)", "")
+        @test strip.(tab[(1,:key4 ), "test3"] |> gv ) == ("-0.903", "(1.361)", "")
+        @test strip.(tab[(1,:key5 ), "test3"] |> gv ) == ("0.864" , "(0.910)", "")
+        @test strip.(tab[(1,:key6 ), "test3"] |> gv ) == ("2.212" , "(0.332)", "")
+        @test strip.(tab[(1,:key7 ), "test3"] |> gv ) == ("0.533" , "(0.501)", "")
+        @test strip.(tab[(1,:key8 ), "test3"] |> gv ) == ("-0.272", "(0.608)", "")
+        @test strip.(tab[(1,:key9 ), "test3"] |> gv ) == ("0.502" , "(0.269)", "")
+        @test strip.(tab[(1,:key10), "test3"] |> gv ) == ("-0.517", "(1.226)", "")
     end
 
     @testset "IndexedTable Indexing" begin

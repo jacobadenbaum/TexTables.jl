@@ -12,8 +12,8 @@ using GLM: LinearModel
 using StatsModels: DataFrameRegressionModel
 using Parameters
 
-export FormattedNumber, FNum, FNumSE, @fmt, TableCol
-export TableCol, Table
+export FormattedNumber, FNum, FNumSE, @fmt, TableCol, star!
+export TableCol, Table, TexTable, get_vals
 export IndexedTable, append_table, join_table, promote_rule
 export to_tex, to_ascii, write_tex
 

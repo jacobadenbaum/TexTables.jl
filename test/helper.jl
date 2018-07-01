@@ -42,6 +42,13 @@ function export_table(i, fstring::String)
     end
 end
 
+function export_table(t::TexTable; kwargs...)
+
+    export_table(to_ascii(t; kwargs...), table_type="ascii")
+    export_table(to_tex(t; kwargs...),   table_type="latex")
+
+end
+
 function next_test_table()
     files = readdir(resource_path())
     nums  = map(files) do file
@@ -51,9 +58,9 @@ function next_test_table()
     return maximum(nums) + 1
 end
 
-function export_table(fstring::String)
+function export_table(fstring::String; table_type="")
     next_num = next_test_table()
     export_table(next_num, fstring)
-    println("Exported to $(test_table(next_num))")
+    println("Exported $table_type to $(test_table(next_num))")
     return next_num
 end

@@ -68,36 +68,41 @@ end
 
 abstract type FormattedNumber{T} end
 
-struct FNum{T} <: FormattedNumber{T}
+mutable struct FNum{T} <: FormattedNumber{T}
     val::T
+    star::Int
     format::String
-    function FNum(val::T, format::String) where T
-        return new{T}(val, fixed_or_scientific(val, format))
+    function FNum(val::T, star::Int, format::String) where T
+        return new{T}(val, star, fixed_or_scientific(val, format))
     end
 end
 
-==(x1::FNum, x2::FNum) = x1.val == x2.val && x1.format == x2.format
+==(x1::FNum, x2::FNum) =    x1.val      == x2.val &&
+                            x1.format   == x2.format &&
+                            x1.star     == x2.star
 
-struct FNumSE{T} <: FormattedNumber{T}
+mutable struct FNumSE{T} <: FormattedNumber{T}
     val::T
     se::Float64
+    star::Int
     format::String
     format_se::String
 
-    function FNumSE(val::T, se::Float64, format::String,
+    function FNumSE(val::T, se::Float64, star::Int, format::String,
                     format_se::String) where T
-        return new{T}(val, se, fixed_or_scientific(val, format),
+        return new{T}(val, se, star, fixed_or_scientific(val, format),
                       fixed_or_scientific(se, format_se))
     end
 end
 
-==(x1::FNumSE, x2::FNumSE) =   x1.val == x2.val &&
-                               x1.se  == x2.se  &&
-                               x1.format == x2.format &&
+==(x1::FNumSE, x2::FNumSE) =   x1.val       == x2.val       &&
+                               x1.se        == x2.se        &&
+                               x1.star      == x2.star      &&
+                               x1.format    == x2.format    &&
                                x1.format_se == x2.format_se
 
 function FormattedNumber(val::T, format::String=default_fmt(T)) where T
-    return FNum(val, format)
+    return FNum(val, 0, format)
 end
 
 function FormattedNumber(val::T, se::S,
@@ -106,7 +111,7 @@ function FormattedNumber(val::T, se::S,
              {T<:AbstractFloat, S <: AbstractFloat}
     se2 = Float64(se)
     newval, newse = promote(val, se)
-    return FNumSE(newval, newse, format, format_se)
+    return FNumSE(newval, newse, 0, format, format_se)
 end
 
 function FormattedNumber(val::T, se::S,
@@ -115,7 +120,7 @@ function FormattedNumber(val::T, se::S,
                          {T, S<:AbstractFloat}
     se2 = Float64(se)
     @assert(isnan(se), "Cannot have non-NaN Standard Errors for $T")
-    return FNumSE(val, se, format, format_se)
+    return FNumSE(val, se, 0, format, format_se)
 end
 
 FormattedNumber(x::FormattedNumber) = x
@@ -145,7 +150,7 @@ value(x::FormattedNumber)   = format(x.format, x.val)
 se(x::FNumSE)               = format("($(x.format_se))", x.se)
 se(x::FNum)                 = ""
 
-
-
-
-
+function star!(x::FormattedNumber, i::Int)
+    x.star = i
+    return x
+end

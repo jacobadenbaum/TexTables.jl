@@ -137,20 +137,27 @@ end
 #################### Indexing ##########################################
 ########################################################################
 
+function get_vals(x::FormattedNumber)
+    val     = value(x)
+    seval   = se(x)
+    star    = "*"^x.star
+    return val, seval, star
+end
+
 function get_vals(col::TableCol, x::TableIndex, backup="")
     if  x in keys(col.data)
-        val     = value(col.data[x])
-        seval   = se(col.data[x])
+        val, seval, star = get_vals(col.data[x])
     else
         val     = backup
         seval   = ""
+        star    = ""
     end
-    return  val, seval
+    return  val, seval, star
 end
 
 # This is an inefficient backup getindex method to maintain string
 # indexing for users
-function getindex(col::TableCol{1,N}, key::Printable, backup="") where N
+function getindex(col::TableCol{1,N}, key::Printable) where N
 
     x   = Symbol(key)
     loc = name_lookup(col, x)
@@ -161,10 +168,8 @@ function getindex(col::TableCol{1,N}, key::Printable, backup="") where N
            The string keys you've provided are not unique.  Try indexing
            by TableIndex instead.
            """))
-    elseif length(loc) == 0
-        return backup
     else
-        return col[index[loc[1]], backup]
+        return col[index[loc[1]]]
     end
 end
 
@@ -175,21 +180,13 @@ function name_lookup(col::TableCol{1,N}, x::Symbol) where N
     return  find(names .== x)
 end
 
-function getindex(col::TableCol, x::TableIndex, backup="")
-    return get_vals(col, x, backup)
+function getindex(col::TableCol, x::TableIndex)
+    if haskey(col.data, x)
+        return col.data[x]
+    else
+        return FormattedNumber("")
+    end
 end
-
-# I don't think this is used.  Try to run the tests without it, then
-# remove.
-# function get_length(col::TableCol)
-#     # Get all the values
-#     l = maximum(length.(string.(col.header.name)))
-#     for key in keys(col.data)
-#         val, se = get_vals(col, key)
-#         l = max(l, length(val), length(se))
-#     end
-#     return l
-# end
 
 function setindex!(col::TableCol{1,N}, value, key::Printable) where N
     skey        = Symbol(key)
@@ -202,7 +199,7 @@ function setindex!(col::TableCol{1,N}, value, key::Printable) where N
            """))
     elseif length(loc) == 0
         # We need to insert it at a new position
-        index   = get_idx(col_index, 1)
+        index   =   get_idx(col_index, 1)
         new_idx =   length(index) > 0  ?
                     maximum(index) + 1 :
                     1
@@ -212,7 +209,23 @@ function setindex!(col::TableCol{1,N}, value, key::Printable) where N
     end
 end
 
+# General Backup falls back to FormattedNumber constructor
 function setindex!(col::TableCol, value, key::TableIndex)
     col.data[key] = FormattedNumber(value)
+    return col
+end
+
+# Handle values passed with precision
+function setindex!(col::TableCol, value::Tuple{T, T2}, key::TableIndex) where
+    {T, T2<:AbstractFloat}
+    col.data[key] = FormattedNumber(value)
+    return col
+end
+
+# Handle optional stars
+function setindex!(col::TableCol, value::Tuple{T, T2, Int},
+                   key::TableIndex) where {T, T2<:AbstractFloat}
+    col.data[key] = FormattedNumber(value[1:2])
+    star!(col.data[key], value[3])
     return col
 end
