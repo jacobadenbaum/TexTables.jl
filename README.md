@@ -257,13 +257,10 @@ julia> t1 = TableCol("(1)", m1)
           N |       30
       $R^2$ |    0.348
 ```
-We can combine them together with their own names
+But in general, it is easier to just use the `regtable` function when
+combining several different models:
 ```julia
-julia> reg_table = hcat(TableCol("(1)", m1),
-                        TableCol("(2)", m2),
-                        TableCol("(3)", m3),
-                        TableCol("(4)", m4),
-                        TableCol("(5)", m5))
+julia> reg_table = regtable(m1, m2, m3, m4, m5)
             |   (1)    |   (2)    |   (3)    |   (4)    |   (5)
 -------------------------------------------------------------------
 (Intercept) |  19.978* |   15.809 |   14.167 |   11.834 |   11.011
@@ -295,6 +292,98 @@ point in the future.
 
 If you are interested in integrating `TexTables` into your regression
 package, please see the topic below under "Advanced Usage."
+
+## Row and Column Blocks
+
+As you can see, the summary statistics are kept in a separate row-block
+while the columns are being merged together. We can do this either with
+unnamed groups (like in the previous example), or with named groups that
+will be visible in the table itself.
+
+Suppose that our first 3 regressions needed to be visually grouped
+together under a single heading, and the last two were separate.  We
+could instead construct each group separately and then combine them
+together with the `join_table` function:
+```julia
+group1 = regtable(m1, m2, m3)
+group2 = regtable(m4, m5)
+grouped_table = join_table( "Group 1"=>group1,
+                            "Group 2"=>group2)
+```
+This will display as:
+```julia
+julia> grouped_table = join_table( "Group 1"=>group1,
+                                   "Group 2"=>group2)
+            |            Group 1             |      Group 2
+            |   (1)    |   (2)    |   (3)    |   (1)   |   (2)
+------------------------------------------------------------------
+(Intercept) |   19.978 |   15.809 |   14.167 |  11.834 |   11.011
+            | (11.688) | (11.084) | (11.519) | (8.535) | (11.704)
+     Raises |    0.691 |    0.379 |    0.352 |  -0.026 |   -0.033
+            |  (0.179) |  (0.217) |  (0.224) | (0.184) |  (0.202)
+   Learning |          |    0.432 |    0.394 |   0.246 |    0.249
+            |          |  (0.193) |  (0.204) | (0.154) |  (0.160)
+ Privileges |          |          |    0.105 |  -0.103 |   -0.104
+            |          |          |  (0.168) | (0.132) |  (0.135)
+ Complaints |          |          |          |   0.691 |    0.692
+            |          |          |          | (0.146) |  (0.149)
+   Critical |          |          |          |         |    0.015
+            |          |          |          |         |  (0.147)
+------------------------------------------------------------------
+          N |       30 |       30 |       30 |      30 |       30
+      $R^2$ |    0.348 |    0.451 |    0.459 |   0.715 |    0.715
+```
+If instead, we wanted to maintain a consistent numbering from (1)-(5),
+we could do it using the `regtable` function:
+```julia
+julia> regtable("Group 1"=>(m1, m2, m3), "Group 2"=>(m4, m5))
+            |            Group 1             |       Group 2
+            |   (1)    |   (2)    |   (3)    |   (4)    |   (5)
+-------------------------------------------------------------------
+(Intercept) |  19.978* |   15.809 |   14.167 |   11.834 |   11.011
+            | (11.688) | (11.084) | (11.519) |  (8.535) | (11.704)
+     Raises | 0.691*** |   0.379* |    0.352 |   -0.026 |   -0.033
+            |  (0.179) |  (0.217) |  (0.224) |  (0.184) |  (0.202)
+   Learning |          |  0.432** |   0.394* |    0.246 |    0.249
+            |          |  (0.193) |  (0.204) |  (0.154) |  (0.160)
+ Privileges |          |          |    0.105 |   -0.103 |   -0.104
+            |          |          |  (0.168) |  (0.132) |  (0.135)
+ Complaints |          |          |          | 0.691*** | 0.692***
+            |          |          |          |  (0.146) |  (0.149)
+   Critical |          |          |          |          |    0.015
+            |          |          |          |          |  (0.147)
+-------------------------------------------------------------------
+          N |       30 |       30 |       30 |       30 |       30
+      $R^2$ |    0.348 |    0.451 |    0.459 |    0.715 |    0.715
+```
+And in latex, the group labels will be displayed with `\multicolumn`
+commands:
+```latex
+\begin{tabular}{r|ccc|cc}
+\toprule
+            & \multicolumn{3}{c}{Group 1}    & \multicolumn{2}{c}{Group 2}\\
+            & (1)      & (2)      & (3)      & (4)         & (5)          \\ \hline
+(Intercept) &   19.978 &   15.809 &   14.167 &      11.834 &       11.011 \\
+            & (11.688) & (11.084) & (11.519) &     (8.535) &     (11.704) \\
+     Raises &    0.691 &    0.379 &    0.352 &      -0.026 &       -0.033 \\
+            &  (0.179) &  (0.217) &  (0.224) &     (0.184) &      (0.202) \\
+   Learning &          &    0.432 &    0.394 &       0.246 &        0.249 \\
+            &          &  (0.193) &  (0.204) &     (0.154) &      (0.160) \\
+ Privileges &          &          &    0.105 &      -0.103 &       -0.104 \\
+            &          &          &  (0.168) &     (0.132) &      (0.135) \\
+ Complaints &          &          &          &       0.691 &        0.692 \\
+            &          &          &          &     (0.146) &      (0.149) \\
+   Critical &          &          &          &             &        0.015 \\
+            &          &          &          &             &      (0.147) \\ \hline
+          N &       30 &       30 &       30 &          30 &           30 \\
+      $R^2$ &    0.348 &    0.451 &    0.459 &       0.715 &        0.715 \\
+\bottomrule
+\end{tabular}
+```
+The vertical analogue of `join_table` is the function `append_table`.
+Both will also accept the table objects as arguments instead of pairs if
+you want to construct the row/column groups without adding a visible
+multi-index.
 
 ## Display Options
 
@@ -350,78 +439,6 @@ Currently, `TexTables` supports the following display options:
 3.  `star::Bool` (default `true`)
         If true, then prints any table entries that have been decorated
         with significance stars with the appropriate number of stars.
-
-## Row and Column Blocks
-
-As you can see, the summary statistics are kept in a separate row-block
-while the columns are being merged together. We can do this either with
-unnamed groups (like in the previous example), or with named groups that
-will be visible in the table itself.
-
-Suppose that our first 3 regressions needed to be visually grouped
-together under a single heading, and the last two were separate.  We
-could instead construct each group separately and then combine them
-together with the `join_table` function:
-```julia
-group1 = hcat(  TableCol("(1)", m1),
-                TableCol("(2)", m2),
-                TableCol("(3)", m3))
-group2 = hcat(  TableCol("(1)", m4),
-                TableCol("(2)", m5))
-grouped_table = join_table( "Group 1"=>group1,
-                            "Group 2"=>group2)
-```
-This will display as:
-```julia
-julia> grouped_table = join_table( "Group 1"=>group1,
-                                   "Group 2"=>group2)
-            |            Group 1             |      Group 2
-            |   (1)    |   (2)    |   (3)    |   (1)   |   (2)
-------------------------------------------------------------------
-(Intercept) |   19.978 |   15.809 |   14.167 |  11.834 |   11.011
-            | (11.688) | (11.084) | (11.519) | (8.535) | (11.704)
-     Raises |    0.691 |    0.379 |    0.352 |  -0.026 |   -0.033
-            |  (0.179) |  (0.217) |  (0.224) | (0.184) |  (0.202)
-   Learning |          |    0.432 |    0.394 |   0.246 |    0.249
-            |          |  (0.193) |  (0.204) | (0.154) |  (0.160)
- Privileges |          |          |    0.105 |  -0.103 |   -0.104
-            |          |          |  (0.168) | (0.132) |  (0.135)
- Complaints |          |          |          |   0.691 |    0.692
-            |          |          |          | (0.146) |  (0.149)
-   Critical |          |          |          |         |    0.015
-            |          |          |          |         |  (0.147)
-------------------------------------------------------------------
-          N |       30 |       30 |       30 |      30 |       30
-      $R^2$ |    0.348 |    0.451 |    0.459 |   0.715 |    0.715
-```
-And in latex, the group labels will be displayed with `\multicolumn`
-commands:
-```latex
-\begin{tabular}{r|ccc|cc}
-\toprule
-            & \multicolumn{3}{c}{Group 1}    & \multicolumn{2}{c}{Group 2}\\
-            & (1)      & (2)      & (3)      & (1)         & (2)          \\ \hline
-(Intercept) &   19.978 &   15.809 &   14.167 &      11.834 &       11.011 \\
-            & (11.688) & (11.084) & (11.519) &     (8.535) &     (11.704) \\
-     Raises &    0.691 &    0.379 &    0.352 &      -0.026 &       -0.033 \\
-            &  (0.179) &  (0.217) &  (0.224) &     (0.184) &      (0.202) \\
-   Learning &          &    0.432 &    0.394 &       0.246 &        0.249 \\
-            &          &  (0.193) &  (0.204) &     (0.154) &      (0.160) \\
- Privileges &          &          &    0.105 &      -0.103 &       -0.104 \\
-            &          &          &  (0.168) &     (0.132) &      (0.135) \\
- Complaints &          &          &          &       0.691 &        0.692 \\
-            &          &          &          &     (0.146) &      (0.149) \\
-   Critical &          &          &          &             &        0.015 \\
-            &          &          &          &             &      (0.147) \\ \hline
-          N &       30 &       30 &       30 &          30 &           30 \\
-      $R^2$ &    0.348 &    0.451 &    0.459 &       0.715 &        0.715 \\
-\bottomrule
-\end{tabular}
-```
-The vertical analogue of `join_table` is the function `append_table`.
-Both will also accept the table objects as arguments instead of pairs if
-you want to construct the row/column groups without adding a visible
-multi-index.
 
 # Advanced Usage
 

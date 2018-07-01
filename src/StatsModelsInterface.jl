@@ -15,7 +15,8 @@ pval(m::LinearModel)                = ccdf.(FDist(1, dof_residual(m)),
 pval(m::DataFrameRegressionModel)   = ccdf.(FDist(1, dof_residual(m)),
                                             abs2.(tt(m)))
 
-function TableCol(header, m::StatisticalModel;
+RegModel = Union{LinearModel, DataFrameRegressionModel}
+function TableCol(header, m::RegModel;
                   stats=(:N=>Int∘nobs, "\$R^2\$"=>r2))
 
     coef_block = TableCol(header)
@@ -31,4 +32,38 @@ function TableCol(header, m::StatisticalModel;
     stats_block = TableCol(header, stats_pairs)
 
     return append_table(coef_block, stats_block)
+end
+
+
+########################################################################
+#################### regtable Interface ###############################
+########################################################################
+
+TableAble = Union{RegModel, TexTable, Pair, Tuple}
+
+function regtable(args::Vararg{TableAble}; num=1)
+    cols = TexTable[]
+    for arg in args
+        new_tab = regtable(arg; num=num)
+        n, m = size(new_tab)
+        num += m
+        push!(cols, new_tab)
+    end
+    return hcat(cols...)
+end
+
+function regtable(t::RegModel; num=1)
+    return TableCol("($num)", t)
+end
+
+function regtable(t::TexTable; num=1)
+    return t
+end
+
+function regtable(p::Pair; num=1)
+    return join_table(p.first=>regtable(p.second, num=num))
+end
+
+function regtable(p::Tuple; num=1)
+    return regtable(p...; num=num)
 end

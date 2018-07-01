@@ -32,6 +32,11 @@ using StatsModels, GLM
     compare_file(2, to_ascii(reg_table, star=false))
     compare_file(3, to_tex(reg_table, star=false))
 
+    # Check that regtable interface works
+    reg_table_b = regtable(m1, m2, m3, m4, m5)
+    compare_file(2, to_ascii(reg_table_b, star=false))
+    compare_file(3, to_tex(reg_table_b, star=false))
+
     group1 = hcat(  TableCol("(1)", m1),
                     TableCol("(2)", m2),
                     TableCol("(3)", m3))
@@ -47,6 +52,17 @@ using StatsModels, GLM
                                 "Group 2"=>group2)
     compare_file(8, to_ascii(grouped_table, star=false))
     compare_file(9, to_tex(grouped_table, star=false))
+
+    # Check that regtable interface works
+    grouped_table_b = regtable("Group 1"=>regtable(m1, m2, m3),
+                               "Group 2"=>regtable(m4, m5))
+    compare_file(8, to_ascii(grouped_table_b, star=false))
+    compare_file(9, to_tex(grouped_table_b, star=false))
+
+    grouped_table_c = regtable("Group 1"=>(m1, m2, m3),
+                               "Group 2"=>(m4, m5))
+    compare_file(32, to_ascii(grouped_table_c, star=false))
+    compare_file(33, to_tex(grouped_table_c, star=false))
 
     # Compare against the original table for group1 again (to make sure
     # that all the join_methods are non-mutating)
@@ -85,6 +101,11 @@ end
     compare_file(22, to_ascii(reg_table, star=true))
     compare_file(23, to_tex(reg_table, star=true))
 
+    # Check that regtable interface works
+    reg_table_b = regtable(m1, m2, m3, m4, m5)
+    compare_file(22, to_ascii(reg_table_b, star=true))
+    compare_file(23, to_tex(reg_table_b, star=true))
+
     group1 = hcat(  TableCol("(1)", m1),
                     TableCol("(2)", m2),
                     TableCol("(3)", m3))
@@ -100,6 +121,17 @@ end
                                 "Group 2"=>group2)
     compare_file(28, to_ascii(grouped_table, star=true))
     compare_file(29, to_tex(grouped_table, star=true))
+
+    # Check that regtable interface works
+    grouped_table_b = regtable("Group 1"=>regtable(m1, m2, m3),
+                               "Group 2"=>regtable(m4, m5))
+    compare_file(28, to_ascii(grouped_table_b, star=true))
+    compare_file(29, to_tex(grouped_table_b, star=true))
+
+    grouped_table_c = regtable("Group 1"=>(m1, m2, m3),
+                               "Group 2"=>(m4, m5))
+    compare_file(30, to_ascii(grouped_table_c, star=true))
+    compare_file(31, to_tex(grouped_table_c, star=true))
 
     # Compare against the original table for group1 again (to make sure
     # that all the join_methods are non-mutating)
