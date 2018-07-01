@@ -8,6 +8,10 @@ end
 Index{N}    = Vector{TableIndex{N}}
 Printable   = Union{String, Symbol}
 
+function TableIndex(idx, name)
+    return TableIndex(tuplefy(idx), tuplefy(Symbol.(name)))
+end
+
 TableIndex(idx::Integer, name::Printable) = begin
     TableIndex(tuple(idx), tuple(Symbol(name)))
 end

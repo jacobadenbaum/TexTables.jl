@@ -1,4 +1,6 @@
 
+import TexTables: TableIndex, tuplefy
+
 function test_constructor(name, x, y)
     pairs = Pair.(x,y)
     col = TableCol(name, x, y)
@@ -90,5 +92,36 @@ end
         test_constructor(name, x, y)
 
     end
+
+end
+
+@testset "TableIndex" begin
+
+    ####################################################################
+    ################### Constructing TableIndex ########################
+    ####################################################################
+    x = TableIndex(1, "test")
+    @test x.idx == (1,)
+    @test x.name == (:test,)
+
+    x = TableIndex(1, :test)
+    @test x.idx == (1,)
+    @test x.name == (:test,)
+
+    ####################################################################
+    ################### Comparing TableIndex Values for Sorting ########
+    ####################################################################
+
+    a = "a test"
+    t = "test"
+    z = "z test"
+
+    # Sort Lexicographically on the levels
+    @test TableIndex((1,1), (a, t)) < TableIndex((2,1), (a, t))
+    @test TableIndex((1,1), (z, t)) < TableIndex((2,1), (a, t))
+    @test TableIndex((2,1), (a, t)) < TableIndex((2,1), (z, t))
+    @test TableIndex((2,1), (a, t)) <= TableIndex((2,1), (a, z))
+    @test TableIndex((2,1), (a, t)) <= TableIndex((2,1), (a, t))
+    @test TableIndex((2,1), (a, z)) > TableIndex((2,1), (a, a))
 
 end
