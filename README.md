@@ -440,6 +440,43 @@ Currently, `TexTables` supports the following display options:
         If true, then prints any table entries that have been decorated
         with significance stars with the appropriate number of stars.
 
+## Changing the Default Formatting
+
+`TexTables` stores all of the table entries using special formatting
+aware container types types that are subtypes of the abstract type
+`FormattedNumber`.  By default, `TexTables` displays floating points
+with three decimal precision (and auto-converts to scientific notation
+for values less than 1e-3 and greater than 1e5).  Formatting is done
+using Python-like formatting strings (Implemented by the excellent
+[Formatting.jl](https://github.com/JuliaIO/Formatting.jl "A Julia
+package to provide Python-like formatting support") package) If you
+would like to change the default formatting values, you can do so using
+the macro `@fmt`:
+
+```julia
+@fmt Real = "{:.3f}"        # Sets the default for reals to .3 fixed precision
+@fmt Real = "{:.2f}"        # Sets the default for reals to .2 fixed precision
+@fmt Real = "{:.2e}"        # Sets the default for reals to .2 scientific
+@fmt Int  = "{:,n}"         # Sets the default for integers to use commas
+@fmt Bool = "{:}"           # No extra formatting for Bools
+@fmt AbstractString= "{:}"  # No extra formatting for Strings
+```
+Note that this controls the _defaults_ used when constructing a
+`FormattedNumber`.  If you want to change the formatting in a table that
+has already been constructed, you need to manually change the `format`
+field of each entry in the table:
+```julia
+julia> x = FormattedNumber(5.0)
+5.000
+
+julia> x.format
+"{:.3f"}
+
+julia> x.format = "{:.3e}";
+julia> x
+5.000e+00
+```
+
 # Advanced Usage
 
 These sections are for advanced users who are interested in fine-tuning
