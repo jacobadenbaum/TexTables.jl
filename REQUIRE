@@ -6,3 +6,4 @@ DataFrames
 StatsBase
 StatsModels
 GLM
+Distributions
