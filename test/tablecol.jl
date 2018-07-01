@@ -102,7 +102,7 @@ end
     ####################################################################
     x = TableIndex(1, "test")
     @test x.idx == (1,)
-    @test x.name == ("test",)
+    @test x.name == (:test,)
 
     x = TableIndex(1, :test)
     @test x.idx == (1,)
