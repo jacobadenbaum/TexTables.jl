@@ -1,9 +1,7 @@
-# Advanced Usage
-
 These sections are for advanced users who are interested in fine-tuning
 their own custom tables or integrating `TexTables` into their packages.
 
-## Building Tables from Scratch
+# Building Tables from Scratch
 The core object when constructing tables with `TexTables` is the
 `TableCol` type.  This is just a wrapper around an `OrderedDict` and a
 header index, that enforces conversion of the header and the keys to
@@ -44,7 +42,7 @@ julia> se  = randn(10) .|> abs .|> sqrt
  1.22614
 ```
 
-### Constructing Columns From Vectors:
+## Constructing Columns From Vectors:
 
 If your data is already in vector form, the easiest way to construct a
 `TableCol` is to just pass the vectors as positional arguments:
@@ -81,6 +79,7 @@ julia>  for (k, v) in zip(key, vals)
 julia> t2 == t1
 true
 ```
+## Constructing Columns with Standard Errors
 To include standard errors, we can either pass the column of standard
 errors as a third column, or we can set the index using tuples of `(key,
 value)` pairs
@@ -119,6 +118,7 @@ key10 |   -0.517
 julia> t3 == TableCol("Column 2", key,vals, se)
 true
 ```
+## Constructing Columns from `<: Associative`
 You can also pass an `Associative` of `key=>value` pairs like a `Dict` or
 an `OrderedDict`.  Beware though of using `Dict` types to pass the data,
 since they will not maintain insertion order:
@@ -129,6 +129,7 @@ julia> dict2 = OrderedDict(Pair.(key, vals));
 julia> TableCol("Column", dict) == TableCol("Column",dict2)
 false
 ```
+
 To pass standard errors in an `Associative` as well, you can either pass
 an associative where the values are tuples, or you can pass two
 different lookup tables:
@@ -140,7 +141,7 @@ julia> t3 == TableCol("Column 2",dict2, se_dict2) == TableCol("Column 2", se_dic
 true
 ```
 
-## Integrating `TexTables` into your own Estimation Package
+# Integrating `TexTables` into your own Estimation Package
 
 Once you know how you would like your model's regression tables to look, it is
 extremely easy to built it with `TexTables`.  For instance, the code to
