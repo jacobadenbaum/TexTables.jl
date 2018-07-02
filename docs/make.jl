@@ -1,9 +1,6 @@
 using Documenter
 using TexTables
 
-# Install Dependencies
-Pkg.add("RDatasets")
-
 makedocs(
     modules = [TexTables],
     sitename= "TexTables.jl",
