@@ -1,4 +1,4 @@
-# Overview
+# Advanced Usage
 These sections are for advanced users who are interested in fine-tuning
 their own custom tables or integrating `TexTables` into their packages.
 
