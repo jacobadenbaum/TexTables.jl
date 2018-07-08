@@ -5,6 +5,72 @@ constructor (or, since the Table constructor falls back to TableCols on
 a vararg, the Table constructor).
 =#
 
+########################################################################
+#################### General Regression API Implementation #############
+########################################################################
+
+RegCol{M} = TableCol{3,M}
+
+function RegCol(header::Printable)
+    return TableCol(TableIndex(1, header), TableDict{3, FormattedNumber}())
+end
+
+"""
+```
+getnext(t::TableCol{3,M}, group::Int, level::Int) where M
+```
+In a TableCol `t` of row depth 3, computes the next index on the third level
+given that the first dimension of the index is `group` and the second is
+`level`.
+"""
+function getnext(t::RegCol, group::Int, level::Int)
+    max_idx = 0
+    for ridx in keys(t.data)
+        ridx.idx[1] != group && continue
+        ridx.idx[2] != level && continue
+        max_idx = max(max_idx, ridx.idx[3])
+    end
+    return max_idx + 1
+end
+
+for (block, fname) in zip([:1,:2,:3], [:addcoef!, :addmeta!, :addstats!])
+
+    @eval function ($fname)(t::RegCol, key::Printable, val; level=1, name="")
+        next_idx = getnext(t, $block, level)
+        index    = TableIndex(($block, level, next_idx), ("", name, key))
+        t[index] = val
+    end
+
+    @eval function ($fname)(t::RegCol, key::Printable, val, se; level=1, name="")
+        next_idx = getnext(t, $block, level)
+        index    = TableIndex(($block, level, next_idx), ("", name, key))
+        t[index] = val, se
+    end
+
+    @eval function ($fname)(t::RegCol, p::Pair; level=1, name="")
+        next_idx = getnext(t, $block, level)
+        key      = p.first
+        val      = p.second
+        index    = TableIndex(($block, level, next_idx), ("", name, key))
+        t[index] = val
+    end
+
+    # Handle associatives
+    @eval function ($fname)(t::RegCol, args...)
+        for kv in zip(args)
+            ($fname)(t, kv...)
+        end
+    end
+
+    @eval function ($fname)(t::RegCol, ps::Associative; level=1, name="")
+        ($fname)(t, ps...)
+    end
+end
+
+########################################################################
+#################### Linear Model Interface ############################
+########################################################################
+
 varnames(m::LinearModel) = m.pp.X
 varnames(m::DataFrameRegressionModel) = coefnames(m.mf)
 
@@ -19,19 +85,21 @@ RegModel = Union{LinearModel, DataFrameRegressionModel}
 function TableCol(header, m::RegModel;
                   stats=(:N=>Int∘nobs, "\$R^2\$"=>r2))
 
-    coef_block = TableCol(header)
+    col = RegCol(header)
+
+    # Add the coefficients
     for (name, val, se, pval) in zip(varnames(m), coef(m), stderror(m),
                                       pval(m))
-        coef_block[name] = val, se
-        0.05 <  pval <= .1  && star!(coef_block[name], 1)
-        0.01 <  pval <= .05 && star!(coef_block[name], 2)
-                pval <= .01 && star!(coef_block[name], 3)
+        addcoef!(col, name, val, se)
+        0.05 <  pval <= .1  && star!(col[name], 1)
+        0.01 <  pval <= .05 && star!(col[name], 2)
+                pval <= .01 && star!(col[name], 3)
     end
 
-    stats_pairs = OrderedDict(p.first=>p.second(m) for p in stats)
-    stats_block = TableCol(header, stats_pairs)
+    # Add in the fit statistics
+    addstats!(col, OrderedDict(p.first=>p.second(m) for p in stats))
 
-    return append_table(coef_block, stats_block)
+    return col
 end
 
 

@@ -17,6 +17,7 @@ export FormattedNumber, FNum, FNumSE, @fmt, TableCol, star!
 export TableCol, Table, TexTable, get_vals
 export IndexedTable, append_table, join_table, promote_rule
 export to_tex, to_ascii, write_tex, regtable
+export addcoef!, addmeta!, addstats!, RegCol
 
 # Import from base to extend
 import Base.getindex, Base.setindex!, Base.push!
