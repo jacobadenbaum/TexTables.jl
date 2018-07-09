@@ -11,7 +11,7 @@ end
 
 IndexedTable(t::TableCol) = begin
     columns     = [t]
-    row_index   = keys(t.data) |> collect
+    row_index   = keys(t.data) |> collect |> sort
     col_index   = [t.header]
     return IndexedTable(columns, row_index, col_index)
 end

@@ -11,6 +11,7 @@ makedocs(
               "Introduction"=>  "index.md",
               "Easy Examples"=> "easy_examples.md",
               "Basic Usage" =>  "basic_usage.md",
+              "Regression API"=> "regression_tables.md",
               "Advanced Usage"=>"advanced_usage.md"]
 )
 

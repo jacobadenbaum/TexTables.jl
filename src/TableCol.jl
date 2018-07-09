@@ -71,7 +71,7 @@ mutable struct TableCol{N,M} <: TexTable
     data::TableDict{N, FormattedNumber}
 end
 
-TableCol(header::String) = TableCol(TableIndex(1, header),
+TableCol(header::Printable) = TableCol(TableIndex(1, header),
                                     TableDict{1, FormattedNumber}())
 
 TableCol(x::TableCol; kwargs...) = x
@@ -161,7 +161,7 @@ end
 
 # This is an inefficient backup getindex method to maintain string
 # indexing for users
-function getindex(col::TableCol{1,N}, key::Printable) where N
+function getindex(col::TableCol, key::Printable)
 
     x   = Symbol(key)
     loc = name_lookup(col, x)
@@ -177,10 +177,9 @@ function getindex(col::TableCol{1,N}, key::Printable) where N
     end
 end
 
-function name_lookup(col::TableCol{1,N}, x::Symbol) where N
+function name_lookup(col::TableCol{N,M}, x::Symbol) where {N,M}
     index = keys(col.data)
-    idxs  = get_idx(index, 1)
-    names = get_name(index, 1)
+    names = get_name(index, N)
     return  find(names .== x)
 end
 
@@ -232,4 +231,9 @@ function setindex!(col::TableCol, value::Tuple{T, T2, Int},
     col.data[key] = FormattedNumber(value[1:2])
     star!(col.data[key], value[3])
     return col
+end
+
+function size(t::TableCol)
+    n = length(t.data)
+    return n, 1
 end
