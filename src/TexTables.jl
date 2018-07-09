@@ -10,7 +10,6 @@ using Formatting, DataStructures, DataFrames
 using StatsBase
 using Distributions
 using GLM: LinearModel
-using StatsModels: DataFrameRegressionModel
 using Parameters
 
 export FormattedNumber, FNum, FNumSE, @fmt, TableCol, star!
