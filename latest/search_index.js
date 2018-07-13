@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "Installation",
     "category": "section",
-    "text": "TexTables is not yet registered, so it can be installed by cloning it from the repository.Pkg.clone(\"https://github.com/jacobadenbaum/TexTables.jl.git\")"
+    "text": "TexTables is not yet registered, so it can be installed with the commandPkg.add(\"TexTables\")"
 },
 
 {
