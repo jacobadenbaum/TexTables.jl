@@ -20,9 +20,8 @@ want to help!).
 
 # Quickstart
 
-TexTables is not yet registered, so it can be installed by cloning it
-from the repository.
+TexTables is a registered Julia package, so it can be installed with the command
 ```julia
-Pkg.clone("https://github.com/jacobadenbaum/TexTables.jl.git")
+Pkg.add("TexTables")
 ```
-For more usage details, please see the latest documentation.   
+For more usage details, please see the latest documentation.
