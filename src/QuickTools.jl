@@ -36,6 +36,17 @@ NumericCol = Vector{T} where {T1<:Real, T2<:Real,
 tuplefy(x) = tuple(x)
 tuplefy(x::Tuple) = x
 
+function typenarrow(x::Array)
+    T = promotearray(x)
+    return convert(T, x)
+end
+
+function promotearray(x::Array{S, N}) where {S,N}
+    types = typeof.(x) |> unique
+    T     = promote_type(types...)
+    return Array{T,N}
+end
+
 function summarize(df::AbstractDataFrame, fields=names(df);
                    detail=false, stats=default_stats(detail), kwargs...)
 
@@ -43,7 +54,7 @@ function summarize(df::AbstractDataFrame, fields=names(df);
     for pair in tuplefy(stats)
         col = TableCol(pair.first)
         for header in fields
-            if df[header] isa NumericCol
+            if promotearray(df[header]) <: NumericCol
                 col[header] = pair.second(df[header])
             else
                 col[header] = ""
