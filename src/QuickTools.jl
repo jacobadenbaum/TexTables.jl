@@ -36,19 +36,10 @@ NumericCol = AbstractVector{T} where {T1<:Real, T2<:Real,
 tuplefy(x) = tuple(x)
 tuplefy(x::Tuple) = x
 
-function typenarrow(x::Array)
-    T = promotearray(x)
-    return convert(T, x)
-end
-
-function promotearray(x::Array{S, N}) where {S,N}
+function promotearray(x::AbstractArray{S, N}) where {S,N}
     types = typeof.(x) |> unique
     T     = promote_type(types...)
     return Array{T,N}
-end
-
-function promotearray(x::T) where {T<:BitArray}
-    return T
 end
 
 function summarize(df::AbstractDataFrame, fields=names(df);
