@@ -13,3 +13,16 @@ import   TexTables: tuplefy
         @test tuplefy((x, y)) == (x,y)
     end
 end
+
+@testset "summarize" begin
+    df = DataFrame(A=[1,2,3],
+                   B=[1.0, 2.0, 3.0],
+                   C=[true, true, false],
+                   D=BitArray([true, true, false]),
+                   E=[1, 2, missing],
+                   F=[1.0, 2.0, missing],
+                   G=["test1", "test2", "test3"])
+    t = summarize(df)
+    compare_file(34, to_ascii(t))
+    compare_file(35, to_tex(t))
+end

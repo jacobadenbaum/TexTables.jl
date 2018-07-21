@@ -30,8 +30,8 @@ function default_stats(detail::Bool)
     end
 end
 
-NumericCol = Vector{T} where {T1<:Real, T2<:Real,
-                              T<:Union{T1, Union{T2, Missing}}}
+NumericCol = AbstractVector{T} where {T1<:Real, T2<:Real,
+                                      T<:Union{T1, Union{T2, Missing}}}
 
 tuplefy(x) = tuple(x)
 tuplefy(x::Tuple) = x
@@ -45,6 +45,10 @@ function promotearray(x::Array{S, N}) where {S,N}
     types = typeof.(x) |> unique
     T     = promote_type(types...)
     return Array{T,N}
+end
+
+function promotearray(x::T) where {T<:BitArray}
+    return T
 end
 
 function summarize(df::AbstractDataFrame, fields=names(df);
