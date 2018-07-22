@@ -79,7 +79,7 @@ end
 #################### Cross Tabulations #################################
 ########################################################################
 
-function tabulate(df::AbstractDataFrame, field)
+function tabulate(df::AbstractDataFrame, field::Symbol)
 
     # Count the number of observations by `field`
     tab = by(df, field) do d
@@ -100,6 +100,34 @@ function tabulate(df::AbstractDataFrame, field)
                         TableCol("Percent", "Total"=>sum(pct)))
     col3 = TableCol("Cum.",     vals, cum )
     col = hcat(col1, col2, col3)
+end
+
+function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
+
+    # Count the number of observations by `field`
+    fields = vcat(field1, field2)
+    df     = dropmissing(df[fields])
+    tab = by(df, fields) do d
+        return DataFrame(N=size(d, 1))
+    end
+
+    # Put it into wide form
+    tab = unstack(tab, field1, field2, :N)
+
+    # Construct the table
+    vals = Symbol.(unique(df[field2]))
+    cols = []
+    for val in vals
+        col  = TableCol(val, tab[field1], tab[val])
+        col2 = TableCol(val, "Total" => sum(tab[val]))
+        push!(cols, append_table(field1=>col, ""=>col2))
+    end
+    tot1 = TableCol("Total", tab[field1], vec(sum(tab[vals] |> Array{Int}, 2)))
+    tot2 = TableCol("Total", "Total" => sum(Array{Int}(tab[vals])))
+    tot  = append_table(field1=>tot1, ""=>tot2)
+
+    ret  = join_table(field2=>hcat(cols...), tot)
+
 end
 
 
