@@ -93,14 +93,14 @@ end
 #################### Constructors ######################################
 ########################################################################
 
-function TableCol(header::Printable, kv::Associative)
+function TableCol(header::Printable, kv::AbstractDict)
     pairs = collect(TableIndex(i, key)=>FormattedNumber(value)
                     for (i, (key, value)) in enumerate(kv))
     TableCol(header,
              OrderedDict{TableIndex{1}, FormattedNumber}(pairs))
 end
 
-function TableCol(header, kv::Associative, kp::Associative)
+function TableCol(header, kv::AbstractDict, kp::AbstractDict)
     TableCol(header,
              OrderedDict{TableIndex{1}, FormattedNumber}(
                 TableIndex(i, key)=>(key in keys(kp)) ?
@@ -178,9 +178,9 @@ function getindex(col::TableCol, key::Printable)
 end
 
 function name_lookup(col::TableCol{N,M}, x::Symbol) where {N,M}
-    index = keys(col.data)
+    index = keys(col.data) |> collect
     names = get_name(index, N)
-    return  find(names .== x)
+    return  findall(y->y==x, names)
 end
 
 function getindex(col::TableCol, x::TableIndex)

@@ -245,7 +245,7 @@ function get_lengths(printer::TablePrinter{N,M},
 
             # Figure out the block width, accounting for the extra
             # space from the separators and the padding
-            block_width = sum(lengths[(1:block_size) + col_pos])
+            block_width = sum(lengths[(1:block_size) .+ col_pos])
             block_width+= (block_size-1)*(2*pad + length(sep))
 
             # If the block is not big enough for the formatted name,
@@ -255,7 +255,7 @@ function get_lengths(printer::TablePrinter{N,M},
             if difference > 0
                 extra_space = div(difference, block_size)
                 remainder   = rem(difference, block_size)
-                for j = (1:block_size) + col_pos
+                for j = (1:block_size) .+ col_pos
                     lengths[j] += extra_space
                     if j <= remainder & u == 1
                         lengths[j] += 1

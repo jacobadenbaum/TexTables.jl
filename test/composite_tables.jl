@@ -1,5 +1,7 @@
 # Baseline check
-srand(1234)
+using Random
+
+Random.seed!(1234)
 x  = randn(10)
 y  = [Symbol(:key, i) for i=1:10]
 t1 = TableCol("test", y, x)

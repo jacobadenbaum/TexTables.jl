@@ -122,6 +122,17 @@ end
 hcat(tables::Vararg{TexTable}) = reduce(hcat, tables)
 vcat(tables::Vararg{TexTable}) = reduce(vcat, tables)
 
+function hvcat(rows::Tuple{Vararg{Int}}, as::Vararg{TexTable})
+    nbr = length(rows)  # number of block rows
+    rs = Array{Any,1}(undef, nbr)
+    a = 1
+    for i = 1:nbr
+        rs[i] = hcat(as[a:a-1+rows[i]]...)
+        a += rows[i]
+    end
+    vcat(rs...)
+end
+
 # Make vcat and hcat work for all TexTables
 vcat(t1::TexTable, t2::TexTable) = vcat(convert.(IndexedTable,
                                                  (t1, t2))...)
@@ -265,6 +276,11 @@ function convert(::Type{IndexedTable{N, M}}, t::IndexedTable{N0, M0}) where
     return t
 end
 
+function promote_rule(::Type{T1}, ::Type{T2}) where
+    {T1 <: IndexedTable, T2 <: TexTable}
+    return IndexedTable
+end
+
 ################################################################################
 #################### General Indexing ##########################################
 ################################################################################
@@ -287,7 +303,7 @@ function insert_index!(index::Index{N}, idx::TableIndex{N}) where N
         # If it does, then we don't have to do anything except check that the
         # strings are right
         if idx.name[N] in N_names
-            loc = find(N_names .== idx.name[N])[1]
+            loc = findall(N_names .== idx.name[N])[1]
 
             # Here's the new index
             new_idx = update_index(idx, tuple(idx.idx[1:N-1]..., loc))
@@ -407,12 +423,12 @@ function loc(t::IndexedTable{N,M}, ridx::Indexable{N},
 end
 
 function locate(index::Vector{TableIndex{N}}, idx::TableIndex{N}) where N
-    return find(index .== idx)
+    return findall(index .== idx)
 end
 
 function locate(index::Vector{TableIndex{N}}, idx) where N
     length(idx) == N || throw(ArgumentError("$idx does not have dimension $N"))
-    return find(index) do x
+    return findall(index) do x
         for i=1:N
             match_index(x, idx[i], i) || return false
         end
