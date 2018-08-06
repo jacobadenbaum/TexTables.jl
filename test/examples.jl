@@ -1,9 +1,9 @@
-using RDatasets, TexTables, DataStructures, DataFrames
+using CSV, TexTables, DataStructures, DataFrames
 using StatsModels, GLM
 
 @testset "Linear Model Examples No Stars" begin
     # Check that this code runs without errors
-    df = dataset("datasets", "attitude")
+    df = CSV.read("test/resources/attitude.csv")
     # Compute summary stats for each variable
     cols = []
     for header in names(df)
@@ -72,7 +72,7 @@ end
 
 @testset "Linear Models With Stars" begin
     # Check that this code runs without errors
-    df = dataset("datasets", "attitude")
+    df = CSV.read("test/resources/attitude.csv")
     # Compute summary stats for each variable
     cols = []
     for header in names(df)
@@ -137,11 +137,10 @@ end
     # that all the join_methods are non-mutating)
     compare_file(24, to_ascii(group1, star=true))
     compare_file(25, to_tex(group1, star=true))
-
 end
 
 @testset "Summary Tables" begin
-    iris = dataset("datasets", "iris")
+    iris = CSV.read("test/resources/iris.csv")
 
     sum1 = summarize(iris)
     compare_file(10, to_ascii(sum1))
