@@ -299,7 +299,7 @@ function format_name(printer::TablePrinter{N,M}, level::Int,
             return "$name"
         else
             align = printer.params.align
-            return mc(block_size, name, align)
+            return mc(block_size, name, align) |> tex_safe
         end
     end
 end
@@ -638,12 +638,48 @@ function format_row_name(printer::TablePrinter{N,M}, level::Int,
     @unpack table_type = printer.params
 
     if table_type == :ascii
-        fname = string(name)
+        return string(name)
     elseif table_type == :latex
         fname =  block_size == 1 ?  string(name) : mr(block_size,name)
+        return tex_safe(fname)
     end
-    return string(fname)
 end
+
+function tex_safe(s::String)
+    l  = length(s)
+    k  = 0
+    
+    # Find The Latex Equations
+    eqr = r"\$[[:ascii:]]*\$"
+
+    while k < l
+        # Find the next equation
+        if occursin(eqr, s[k+1:end])
+            r  = findnext(eqr, s, k+1)
+            rs = r.start
+            re = r.stop
+            
+            # Pull out the bit we're working on
+            s1 = s[(k+1):rs-1] 
+            
+            # Update that substring
+            s1r= replace(s1, non_eq_replacements...)
+            s  = s[1:k]*s1r*s[rs:end]
+            k  = re
+
+            # Update the lengths/differences
+            Δ  = length(s1r) - length(s1)
+            k += Δ
+            l += Δ
+        else
+            s  = s[1:k]*replace(s[k+1:end], non_eq_replacements...)
+            k  = l
+        end
+    end 
+    return s
+end
+
+const non_eq_replacements = ("_"=>"\\_",)
 
 """
 ```
