@@ -224,7 +224,7 @@ function get_lengths(printer::TablePrinter{N,M},
     # Start out with the assumption that we just need enough space for
     # the column contents
     k       = length(t.columns)
-    lengths = col_length.(printer, t.columns)
+    lengths = col_length.(Ref(printer), t.columns)
 
     # Initialize a Block-Width Schema
     bw_schema = Dict()

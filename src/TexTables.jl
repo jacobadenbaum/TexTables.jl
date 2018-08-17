@@ -10,6 +10,7 @@ using StatsBase
 using Distributions
 using GLM: LinearModel
 using Parameters
+using Compat
 
 export FormattedNumber, FNum, FNumSE, @fmt, TableCol, star!
 export TableCol, Table, TexTable, get_vals

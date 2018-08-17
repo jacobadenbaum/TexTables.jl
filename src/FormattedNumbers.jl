@@ -24,7 +24,7 @@ macro fmt(ex)
     @assert(length(ex.args) == 2, msg)
     @assert(ex.args[1] isa Symbol, msg)
     @assert(isa(ex.args[2], String), msg)
-    @assert(ex.args[1] in [:Real, :Int, :Bool, :AbstractString], msg)
+    @assert(ex.args[1] in [:Real, :Int, :Bool, :AbstractString, :Missing], msg)
 
     ex1 = ex.args[1]
     ex2 = ex.args[2]
@@ -39,6 +39,7 @@ end
 @fmt Int  = "{:,n}"
 @fmt Bool = "{:}"
 @fmt AbstractString = "{:}"
+@fmt Missing = ""
 
 const _fmt_spec_gG = r"[gG]"
 const _fmt_spec_g  = r"[g]"

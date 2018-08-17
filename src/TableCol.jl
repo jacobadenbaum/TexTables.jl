@@ -150,13 +150,10 @@ end
 
 function get_vals(col::TableCol, x::TableIndex, backup="")
     if  x in keys(col.data)
-        val, seval, star = get_vals(col.data[x])
+        return get_vals(col.data[x])
     else
-        val     = backup
-        seval   = ""
-        star    = ""
+        return backup, "", ""
     end
-    return  val, seval, star
 end
 
 # This is an inefficient backup getindex method to maintain string
