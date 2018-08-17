@@ -7,3 +7,4 @@ StatsBase
 StatsModels
 GLM
 Distributions
+Compat
