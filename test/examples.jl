@@ -1,9 +1,9 @@
 using CSV, TexTables, DataStructures, DataFrames
-using StatsModels, GLM
+using StatsModels, GLM, RDatasets
 
 @testset "Linear Model Examples No Stars" begin
     # Check that this code runs without errors
-    df = CSV.read("test/resources/attitude.csv")
+    df = dataset("datasets", "attitude")
     # Compute summary stats for each variable
     cols = []
     for header in names(df)
@@ -72,7 +72,7 @@ end
 
 @testset "Linear Models With Stars" begin
     # Check that this code runs without errors
-    df = CSV.read("test/resources/attitude.csv")
+    df = dataset("datasets", "attitude")
     # Compute summary stats for each variable
     cols = []
     for header in names(df)
@@ -140,7 +140,7 @@ end
 end
 
 @testset "Summary Tables" begin
-    iris = CSV.read("test/resources/iris.csv")
+    iris = dataset("datasets", "iris")
 
     sum1 = summarize(iris)
     compare_file(10, to_ascii(sum1))
