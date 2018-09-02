@@ -1,4 +1,4 @@
-using CSV, TexTables, DataStructures, DataFrames
+using TexTables, DataStructures, DataFrames
 using StatsModels, GLM, RDatasets
 
 @testset "Linear Model Examples No Stars" begin
