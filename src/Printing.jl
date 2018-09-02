@@ -648,7 +648,7 @@ end
 function tex_safe(s::String)
     l  = length(s)
     k  = 0
-    
+
     # Find The Latex Equations
     eqr = r"\$[[:ascii:]]*\$"
 
@@ -658,12 +658,14 @@ function tex_safe(s::String)
             r  = findnext(eqr, s, k+1)
             rs = r.start
             re = r.stop
-            
+
             # Pull out the bit we're working on
-            s1 = s[(k+1):rs-1] 
-            
+            s1  = s[(k+1):rs-1]
+            s1r = s1
             # Update that substring
-            s1r= replace(s1, non_eq_replacements...)
+            for rep in non_eq_replacements
+                s1r = replace(s1r, rep)
+            end
             s  = s[1:k]*s1r*s[rs:end]
             k  = re
 
@@ -672,14 +674,20 @@ function tex_safe(s::String)
             k += Δ
             l += Δ
         else
-            s  = s[1:k]*replace(s[k+1:end], non_eq_replacements...)
+            ns = s[k+1:end]
+            for rep in non_eq_replacements
+                ns = replace(ns, rep)
+            end
+            s  = s[1:k]*ns
             k  = l
         end
-    end 
+    end
     return s
 end
 
-const non_eq_replacements = ("_"=>"\\_",)
+const non_eq_replacements = ("_"=>"\\_",
+                             "↑"=>"\$\\uparrow\$",
+                             "↓"=>"\$\\downarrow\$")
 
 """
 ```
