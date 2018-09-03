@@ -762,7 +762,7 @@ function print(io::IO, t::IndexedTable{N,M}; kwargs...) where {N,M}
 end
 
 function print(t::IndexedTable; kwargs...)
-    print(STDOUT, t; kwargs...)
+    print(stdout, t; kwargs...)
 end
 
 show(io::IO, t::IndexedTable; kwargs...) = print(io, t; kwargs...)
