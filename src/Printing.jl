@@ -290,7 +290,7 @@ end
 function format_name(printer::TablePrinter{N,M}, level::Int,
                      block_size::Int, name)::String where {N,M}
     # ASCII tables just print the centered name
-    printer.params.table_type == :ascii && return name
+    printer.params.table_type == :ascii && return string(name)
 
     # LaTeX tables need to print the name in a multi-column environment
     # except at the lowest level
