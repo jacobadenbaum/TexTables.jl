@@ -1,9 +1,10 @@
-julia 0.6
-Formatting
+julia 0.7 2
+Formatting 0.3.3
 Parameters
 DataStructures
 DataFrames
 StatsBase
 StatsModels
-GLM
+GLM 1.0
 Distributions
+Compat
