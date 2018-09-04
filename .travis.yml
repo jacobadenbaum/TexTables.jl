@@ -31,8 +31,8 @@ matrix:
 #  - julia -e 'Pkg.clone(pwd()); Pkg.build("Tables"); Pkg.test("Tables"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
-  - julia -e 'cd(Pkg.dir("TexTables")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'using Pkg; cd(Pkg.dir("TexTables")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
-  - julia -e 'cd(Pkg.dir("TexTables")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-  - julia -e 'Pkg.add("Documenter"); Pkg.add("RDatasets")'
-  - julia -e 'cd(Pkg.dir("TexTables")); include(joinpath("docs", "make.jl"))'
+  - julia -e 'using Pkg; cd(Pkg.dir("TexTables")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'using Pkg; Pkg.add("Documenter"); Pkg.add("RDatasets")'
+  - julia -e 'using Pkg; cd(Pkg.dir("TexTables")); include(joinpath("docs", "make.jl"))'
