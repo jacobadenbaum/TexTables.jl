@@ -46,4 +46,4 @@ build_script:
       Pkg.clone(pwd(), \"TexTables\"); Pkg.build(\"TexTables\")"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.test(\"TexTables\")"
+  - C:\projects\julia\bin\julia -e "using Pkg; Pkg.test(\"TexTables\")"
