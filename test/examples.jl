@@ -1,5 +1,5 @@
-using RDatasets, TexTables, DataStructures, DataFrames
-using StatsModels, GLM
+using TexTables, DataStructures, DataFrames
+using StatsModels, GLM, RDatasets
 
 @testset "Linear Model Examples No Stars" begin
     # Check that this code runs without errors
@@ -137,7 +137,6 @@ end
     # that all the join_methods are non-mutating)
     compare_file(24, to_ascii(group1, star=true))
     compare_file(25, to_tex(group1, star=true))
-
 end
 
 @testset "Summary Tables" begin

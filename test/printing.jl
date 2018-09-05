@@ -3,7 +3,7 @@ import TexTables:   get_level, generate_schema, check_table_type,
 
 @testset "Extracting Index Levels" begin
     # Standard Composite Tables
-    srand(1234)
+    Random.seed!(1234)
     x  = randn(10)
     y  = [Symbol(:key, i) for i=1:10]
     t1 = TableCol("test", y, x)
@@ -42,7 +42,7 @@ end
 
 @testset "Index Schemas" begin
     # Standard Composite Tables
-    srand(1234)
+    Random.seed!(1234)
     x  = randn(10)
     y  = [Symbol(:key, i) for i=1:10]
     t1 = TableCol("test", y, x)
