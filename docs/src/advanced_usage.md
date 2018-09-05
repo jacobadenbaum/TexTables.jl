@@ -12,7 +12,7 @@ printing.
 Let's make up some data (values, keys, and standard errors) so that we
 can see all of the different ways to construct columns:
 ```julia
-julia> srand(1234);
+julia> Random.seed!(1234);
 
 julia> vals  = randn(10)
 10-element Array{Float64,1}:
