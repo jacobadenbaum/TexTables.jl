@@ -1,7 +1,11 @@
 using   TexTables
 import  TexTables:  TableIndex, TableDict
 using   DataStructures
-using   Base.Test
+using   DataFrames
+using   Test
+using   Random
+using   LinearAlgebra
+using   Statistics
 
 include("helper.jl")
 

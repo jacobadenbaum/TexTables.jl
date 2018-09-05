@@ -1,4 +1,3 @@
-__precompile__()
 module TexTables
 
 # package code goes here
@@ -11,6 +10,7 @@ using StatsBase
 using Distributions
 using GLM: LinearModel
 using Parameters
+using Compat
 
 export FormattedNumber, FNum, FNumSE, @fmt, TableCol, star!
 export TableCol, Table, TexTable, get_vals
@@ -21,7 +21,7 @@ export setcoef!, setmeta!, setstats!, RegCol
 # Import from base to extend
 import Base.getindex, Base.setindex!, Base.push!
 import Base: isless, ==
-import Base: getindex, size, hcat, vcat, convert, promote_rule
+import Base: getindex, size, hcat, vcat, hvcat, convert, promote_rule
 import Base: show, size, print
 
 export summarize, summarize_by, tabulate

@@ -30,7 +30,7 @@ gv = get_vals
     @testset "IndexedTable Indexing" begin
 
         # Construct some random tables
-        srand(1234)
+        Random.seed!(1234)
         x  = randn(10)
         y  = [Symbol(:key, i) for i=1:10]
         t1 = TableCol("test", y, x)
@@ -143,7 +143,7 @@ gv = get_vals
 
     @testset "IndexedTable Indexing" begin
         # Baseline check
-        srand(1234)
+        Random.seed!(1234)
         x  = randn(10)
         y  = [Symbol(:key, i) for i=1:10]
         t1 = TableCol("test", y, x) |> IndexedTable

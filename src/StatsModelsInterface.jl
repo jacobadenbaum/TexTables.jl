@@ -43,7 +43,7 @@ for (block, fname) in zip([:1,:2,:3], [:setcoef!, :setmeta!, :setstats!])
     ```
     $fname(t::$RegCol, key, val[, se]; level=1, name="")
     $fname(t::$RegCol, key=>val; level=1, name="")
-    $fname(t::$RegCol, kv::Associative)
+    $fname(t::$RegCol, kv::AbstractDict)
     ```
     Inserts into `t` a key/value pair (possibly with a standard error) within
     the block.  Like the `TableCol` constructor, the pairs can be passed as
@@ -84,7 +84,7 @@ for (block, fname) in zip([:1,:2,:3], [:setcoef!, :setmeta!, :setstats!])
         end
     end
 
-    @eval function ($fname)(t::RegCol, ps::Associative; level=1, name="")
+    @eval function ($fname)(t::RegCol, ps::AbstractDict; level=1, name="")
         ($fname)(t, ps...)
     end
 end

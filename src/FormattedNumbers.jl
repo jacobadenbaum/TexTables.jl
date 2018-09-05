@@ -24,7 +24,7 @@ macro fmt(ex)
     @assert(length(ex.args) == 2, msg)
     @assert(ex.args[1] isa Symbol, msg)
     @assert(isa(ex.args[2], String), msg)
-    @assert(ex.args[1] in [:Real, :Int, :Bool, :AbstractString], msg)
+    @assert(ex.args[1] in [:Real, :Int, :Bool, :AbstractString, :Missing], msg)
 
     ex1 = ex.args[1]
     ex2 = ex.args[2]
@@ -39,15 +39,16 @@ end
 @fmt Int  = "{:,n}"
 @fmt Bool = "{:}"
 @fmt AbstractString = "{:}"
+@fmt Missing = ""
 
 const _fmt_spec_gG = r"[gG]"
 const _fmt_spec_g  = r"[g]"
 const _fmt_spec_G  = r"[G]"
 
 function fixed_or_scientific(val, format)
-    if ismatch(_fmt_spec_gG, format)
+    if occursin(_fmt_spec_gG, format)
         if val isa Integer
-            return replace(format, _fmt_spec_gG, "n")
+            return replace(format, _fmt_spec_gG => "n")
         else
             mag = log(abs(val))/log(10)
             if  (-Inf < mag <= -3) | (mag >= 5)
@@ -56,10 +57,10 @@ function fixed_or_scientific(val, format)
                 r = "f"
             end
 
-            if ismatch(_fmt_spec_g, format)
-                return replace(format, _fmt_spec_g, lowercase(r))
+            if occursin(_fmt_spec_g, format)
+                return replace(format, _fmt_spec_g => lowercase(r))
             else
-                return replace(format, _fmt_spec_G, uppercase(r))
+                return replace(format, _fmt_spec_G => uppercase(r))
             end
         end
     end
