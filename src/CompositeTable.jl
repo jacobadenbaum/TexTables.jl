@@ -423,7 +423,7 @@ function loc(t::IndexedTable{N,M}, ridx::Indexable{N},
 end
 
 function locate(index::Vector{TableIndex{N}}, idx::TableIndex{N}) where N
-    return findall(index .== idx)
+    return findall(index .== Ref(idx))
 end
 
 function locate(index::Vector{TableIndex{N}}, idx) where N

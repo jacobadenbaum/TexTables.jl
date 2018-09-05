@@ -290,7 +290,7 @@ end
 function format_name(printer::TablePrinter{N,M}, level::Int,
                      block_size::Int, name)::String where {N,M}
     # ASCII tables just print the centered name
-    printer.params.table_type == :ascii && return name
+    printer.params.table_type == :ascii && return string(name)
 
     # LaTeX tables need to print the name in a multi-column environment
     # except at the lowest level
@@ -806,7 +806,7 @@ function print(io::IO, t::IndexedTable{N,M}; kwargs...) where {N,M}
 end
 
 function print(t::IndexedTable; kwargs...)
-    print(STDOUT, t; kwargs...)
+    print(stdout, t; kwargs...)
 end
 
 show(io::IO, t::IndexedTable; kwargs...) = print(io, t; kwargs...)
