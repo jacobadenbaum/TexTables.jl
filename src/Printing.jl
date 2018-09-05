@@ -828,11 +828,15 @@ function to_tex(t::IndexedTable; kwargs...)
     return head(p)*body(p)*foot(p)
 end
 
+function to_tex(t::TexTable; kwargs...)
+    return to_tex(convert(IndexedTable, t); kwargs...)
+end
+
 ########################################################################
 #################### Latex Table Output ################################
 ########################################################################
 
-function write_tex(outfile, t::IndexedTable)
+function write_tex(outfile, t::TexTable)
     open(outfile, "w") do f
         write(f, to_tex(t))
     end
