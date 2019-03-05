@@ -88,9 +88,7 @@ end
 function tabulate(df::AbstractDataFrame, field::Symbol)
 
     # Count the number of observations by `field`
-    tab = by(df, field) do d
-        return DataFrame(N=count(d[field]))
-    end
+    tab = by(df, fields, N = :field => length)
 
     # Construct a Frequency Column
     sort!(tab, field)
@@ -113,9 +111,7 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     # Count the number of observations by `field`
     fields = vcat(field1, field2)
     df     = dropmissing(df[fields])
-    tab = by(df, fields) do d
-        return DataFrame(N=size(d, 1))
-    end
+    tab = by(df, fields, N = field1 => length)
 
     # Put it into wide form
     tab = unstack(tab, field1, field2, :N)
@@ -124,16 +120,16 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     vals = Symbol.(unique(df[field2]))
     cols = []
     for val in vals
-        col  = TableCol(val, tab[field1], tab[val])
+        col  = TableCol(val, Vector(tab[field1]), tab[val])
         col2 = TableCol(val, "Total" => sum(tab[val]))
         push!(cols, append_table(field1=>col, ""=>col2))
     end
-    tot1 = TableCol("Total", tab[field1], vec(sum(tab[vals] |> Array{Int}, 2)))
-    tot2 = TableCol("Total", "Total" => sum(Array{Int}(tab[vals])))
+
+    sums = sum(coalesce.(Matrix(tab[vals]), 0), dims=2) |> vec
+    tot1 = TableCol("Total", Vector(tab[field1]), sums)
+    tot2 = TableCol("Total", "Total" => sum(sums))
     tot  = append_table(field1=>tot1, ""=>tot2)
 
     ret  = join_table(field2=>hcat(cols...), tot)
 
 end
-
-
