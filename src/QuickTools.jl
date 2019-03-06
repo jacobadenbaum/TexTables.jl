@@ -88,12 +88,12 @@ end
 function tabulate(df::AbstractDataFrame, field::Symbol)
 
     # Count the number of observations by `field`
-    tab = by(df, fields, N = :field => length)
+    tab = by(df, field, _N = field => length)
 
     # Construct a Frequency Column
     sort!(tab, field)
     vals  = tab[field] .|> Symbol
-    freq  = tab[:N]
+    freq  = tab[:_N]
     pct   = freq/sum(freq)*100
     cum   = cumsum(pct)
 
@@ -111,10 +111,10 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     # Count the number of observations by `field`
     fields = vcat(field1, field2)
     df     = dropmissing(df[fields])
-    tab = by(df, fields, N = field1 => length)
+    tab = by(df, fields, _N = field1 => length)
 
     # Put it into wide form
-    tab = unstack(tab, field1, field2, :N)
+    tab = unstack(tab, field1, field2, :_N)
 
     # Construct the table
     vals = Symbol.(unique(df[field2]))
