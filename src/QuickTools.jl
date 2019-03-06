@@ -85,6 +85,8 @@ end
 #################### Cross Tabulations #################################
 ########################################################################
 
+
+
 function tabulate(df::AbstractDataFrame, field::Symbol)
 
     # Count the number of observations by `field`
@@ -112,12 +114,13 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     fields = vcat(field1, field2)
     df     = dropmissing(df[fields])
     tab = by(df, fields, _N = field1 => length)
+    sort!(tab, [field1, field2])
 
     # Put it into wide form
     tab = unstack(tab, field1, field2, :_N)
 
     # Construct the table
-    vals = Symbol.(unique(df[field2]))
+    vals = Symbol.(sort(unique(df[field2])))
     cols = []
     for val in vals
         col  = TableCol(val, Vector(tab[field1]), tab[val])
@@ -131,5 +134,4 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     tot  = append_table(field1=>tot1, ""=>tot2)
 
     ret  = join_table(field2=>hcat(cols...), tot)
-
 end

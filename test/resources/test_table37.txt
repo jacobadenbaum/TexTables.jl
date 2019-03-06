@@ -1,0 +1,10 @@
+\begin{tabular}{rr|cc|c}
+\toprule
+                         &            & \multicolumn{2}{c}{TestVar} & \multicolumn{1}{c}{} \\
+                         &            & A            & B            & Total                \\ \hline
+\multirow{3}{*}{Species} &     setosa &           20 &           30 &                   50 \\
+                         & versicolor &           24 &           26 &                   50 \\
+                         &  virginica &           29 &           21 &                   50 \\ \hline
+                         &      Total &           73 &           77 &                  150 \\
+\bottomrule
+\end{tabular}
