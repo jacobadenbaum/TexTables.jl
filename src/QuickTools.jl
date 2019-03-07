@@ -112,7 +112,7 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
 
     # Count the number of observations by `field`
     fields = vcat(field1, field2)
-    df     = dropmissing(df[fields])
+    df     = dropmissing(df[fields], disallowmissing=true)
     tab = by(df, fields, _N = field1 => length)
     sort!(tab, [field1, field2])
 
@@ -124,7 +124,7 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     cols = []
     for val in vals
         col  = TableCol(val, Vector(tab[field1]), tab[val])
-        col2 = TableCol(val, "Total" => sum(tab[val]))
+        col2 = TableCol(val, "Total" => sum(coalesce.(tab[val], 0)))
         push!(cols, append_table(field1=>col, ""=>col2))
     end
 
