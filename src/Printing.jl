@@ -405,7 +405,8 @@ function top_matter(printer::TablePrinter{N,M}) where {N,M}
         elseif border == :single
             return "\\begin{tabular}{$align}\n\\toprule\n"
         elseif border == :none
-            return "\\begin{tabular}{$align}\n\\hline\\hline\n"
+            return "\\begin{tabular}{$align}\n\\toprule\n"
+            @warn("default border will change to double in future releases")
     end
 end
 
@@ -672,7 +673,8 @@ function foot(t::TablePrinter)
     elseif border == :single
         table_type == :latex && return "\\bottomrule\n\\end{tabular}"
     elseif border == :none
-        table_type == :latex && return "\\hline\\hline\n\\end{tabular}"
+        table_type == :latex && return "\\bottomrule\n\\end{tabular}"
+        @warn("default border will change to double in future releases")
 end
 
 
