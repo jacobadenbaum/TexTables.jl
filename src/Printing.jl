@@ -401,11 +401,11 @@ function top_matter(printer::TablePrinter{N,M}) where {N,M}
         end
 
         if border == :double
-            return "\\begin{tabular}{$align}\n\\hline\hline\n"
+            return "\\begin{tabular}{$align}\n\\hline\\hline\n"
         elseif border == :single
             return "\\begin{tabular}{$align}\n\\toprule\n"
         elseif border == :none
-            return "\\begin{tabular}{$align}\n\\hline\hline\n"
+            return "\\begin{tabular}{$align}\n\\hline\\hline\n"
     end
 end
 
@@ -668,11 +668,11 @@ function foot(t::TablePrinter)
     @unpack table_type = t.params
     table_type == :ascii && return ""
     if border == :double
-        table_type == :latex && return "\\hline\hline\n\\end{tabular}"
+        table_type == :latex && return "\\hline\\hline\n\\end{tabular}"
     elseif border == :single
         table_type == :latex && return "\\bottomrule\n\\end{tabular}"
     elseif border == :none
-        table_type == :latex && return "\\hline\hline\n\\end{tabular}"
+        table_type == :latex && return "\\hline\\hline\n\\end{tabular}"
 end
 
 
