@@ -35,9 +35,10 @@ end
     star::Bool          = true
     sep::String         = default_sep(table_type)
     align::String       = "c"
-    TableParams(pad, table_type, se_pos, star, sep, align) = begin
+    border::Symbol      = :double
+    TableParams(pad, table_type, se_pos, star, sep, align, border) = begin
         # Argument Checking
-        return new(pad, table_type, se_pos, star, sep, align)
+        return new(pad, table_type, se_pos, star, sep, align, border)
     end
 end
 
@@ -399,7 +400,12 @@ function top_matter(printer::TablePrinter{N,M}) where {N,M}
             align *= "c"^pair.second
         end
 
-        return "\\begin{tabular}{$align}\n\\toprule\n"
+        if border == :double
+            return "\\begin{tabular}{$align}\n\\hline\hline\n"
+        elseif border == :single
+            return "\\begin{tabular}{$align}\n\\toprule\n"
+        elseif border == :none
+            return "\\begin{tabular}{$align}\n\\hline\hline\n"
     end
 end
 
@@ -657,11 +663,16 @@ end
 ########################################################################
 #################### Footer ############################################
 ########################################################################
-
+# Footer edited to produce double horizontal
 function foot(t::TablePrinter)
     @unpack table_type = t.params
     table_type == :ascii && return ""
-    table_type == :latex && return "\\bottomrule\n\\end{tabular}"
+    if border == :double
+        table_type == :latex && return "\\hline\hline\n\\end{tabular}"
+    elseif border == :single
+        table_type == :latex && return "\\bottomrule\n\\end{tabular}"
+    elseif border == :none
+        table_type == :latex && return "\\hline\hline\n\\end{tabular}"
 end
 
 
