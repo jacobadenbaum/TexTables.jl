@@ -2,7 +2,7 @@
 #################### Summary Tables ####################################
 ########################################################################
 
-count(x) = sum(map(y->1, x))
+count(x) = mapreduce(y->1, +, x)
 p10(x) = quantile(x |> collect, .1)
 p25(x) = quantile(x |> collect, .25)
 p50(x) = quantile(x |> collect, .50)
@@ -37,19 +37,22 @@ tuplefy(x) = tuple(x)
 tuplefy(x::Tuple) = x
 
 function promotearray(x::AbstractArray{S, N}) where {S,N}
-    types = typeof.(x) |> unique
-    T     = promote_type(types...)
+    types = unique(typeof(val) for val in x)
+    T     = reduce(promote_type, types)
     return Array{T,N}
 end
 
 function summarize(df::AbstractDataFrame, fields=names(df);
                    detail=false, stats=default_stats(detail), kwargs...)
 
+    # Determine whether each column is numeric or not
+    numeric = Dict(header => typeof(df[header]) <: NumericCol
+                   for header in fields)
     cols = TableCol[]
     for pair in tuplefy(stats)
         col = TableCol(pair.first)
         for header in fields
-            if promotearray(df[header]) <: NumericCol
+            if numeric[header]
                 col[header] = pair.second(df[header])
             else
                 col[header] = ""
