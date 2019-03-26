@@ -675,6 +675,7 @@ function foot(t::TablePrinter)
     elseif border == :none
         table_type == :latex && return "\\bottomrule\n\\end{tabular}"
         @warn("default border will change to double in future releases")
+    end
 end
 
 
