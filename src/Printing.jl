@@ -394,7 +394,7 @@ function top_matter(printer::TablePrinter{N,M}) where {N,M}
         for i=1:N
             align *= empty_row(t, i) ? "" : "r"
         end
-
+end
         for (i, pair) in enumerate(col_schema[max(M-1,1)])
             align *= (M > 1) | (i==1) ? "|" : ""
             align *= "c"^pair.second
