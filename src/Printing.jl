@@ -295,6 +295,9 @@ function format_name(printer::TablePrinter{N,M}, level::Int,
     # LaTeX tables need to print the name in a multi-column environment
     # except at the lowest level
     if printer.params.table_type == :latex
+        # When printing the name in Latex, we may want to escape some characters
+        name = escape_latex(printer, name)
+
         if level == M
             return "$name"
         else
@@ -310,6 +313,42 @@ function align_name(printer::TablePrinter, len, name)
     table_type == :ascii && return center(name, len)
     table_type == :latex && return format("{:$len}", name)
 end
+
+escape_latex(p::TablePrinter, name) = escape_latex(name)
+
+function escape_latex(name)
+    # Convert the name to a string
+    name = string(name)
+
+    # Keep track of whether we're in math mode
+    mathmode = false
+
+    i = 1
+    while i < length(name)
+        # Update whether we're in mathmode
+        if name[i] == '$'
+            mathode = mathmode ? false : true
+        end
+
+        s = name[i]
+        if (name[i] in keys(latex_replacements)) & !mathmode
+            r    = latex_replacements[s]
+            name = name[1:i-1] * r * name[i+1:end]
+            i += length(r)
+        elseif (name[i] in keys(mathmode_replacements)) & mathmode
+            r    = mathmode_replacements[s]
+            name = name[1:i-1] * r * name[i+1:end]
+            i += length(r)
+        else
+            i += 1
+        end
+
+    end
+    return name
+end
+
+const latex_replacements    = Dict{Char, String}('_' => "\\_")
+const mathmode_replacements = Dict{Char, String}()
 
 """
 Returns the maximum length of the column entries, not accounting for the
@@ -640,7 +679,9 @@ function format_row_name(printer::TablePrinter{N,M}, level::Int,
     if table_type == :ascii
         fname = string(name)
     elseif table_type == :latex
-        fname =  block_size == 1 ?  string(name) : mr(block_size,name)
+        # When printing the name in Latex, we may want to escape some characters
+        sname = escape_latex(printer, name)
+        fname =  block_size == 1 ?  sname : mr(block_size,sname)
     end
     return string(fname)
 end
