@@ -243,6 +243,10 @@ append_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
     append_table(append_table(p2), t1)
 end
 
+append_table(t1::IndexedTable, p2::Pair{P2,T2}, args...) where {P2, T2} = begin
+    append_table(append_table(t1, p2), args...)
+end
+
 
 
 ################################################################################

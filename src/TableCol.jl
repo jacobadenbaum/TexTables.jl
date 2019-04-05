@@ -131,7 +131,7 @@ end
 convert(::Type{FormattedNumber}, x) = FormattedNumber(x)
 convert(::Type{FormattedNumber}, x::FormattedNumber) = x
 
-Entry = Pair{T, K} where {T<:Printable, K<:Union{Printable, Number,
+Entry = Pair{T, K} where {T<:Printable, K<:Union{Printable, Number, Missing,
                                                  NTuple{2,Number}}}
 function TableCol(header::Printable, pairs::Vararg{Entry})
     return TableCol(header, OrderedDict(pairs))

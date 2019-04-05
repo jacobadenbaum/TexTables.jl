@@ -113,10 +113,10 @@ function TableCol(header, m::RegressionModel;
     end
 
     # Add in the fit statistics
-    setstats!(col, OrderedDict(p.first=>p.second(m) for p in stats))
+    setstats!(col, OrderedDict(p.first=>p.second(m) for p in tuplefy(stats)))
 
     # Add in the metadata
-    setmeta!(col, OrderedDict(p.first=>p.second(m) for p in meta))
+    setmeta!(col, OrderedDict(p.first=>p.second(m) for p in tuplefy(meta)))
 
     return col
 end
