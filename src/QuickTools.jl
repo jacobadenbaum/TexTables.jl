@@ -78,7 +78,7 @@ function summarize_by(df, byname::Symbol,
         vals= unique(sub[byname])
         length(vals) == 1 || throw(error("Groupby isn't working"))
         idx = vals[1]
-        push!(tabs, idx=>tab)
+        push!(tabs, string(idx)=>tab)
     end
 
     return append_table(tabs...)
