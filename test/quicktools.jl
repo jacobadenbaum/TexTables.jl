@@ -31,7 +31,7 @@ end
     # Check a generic one
     Random.seed!(1234)
     iris            = dataset("datasets", "iris")
-    iris[:TestVar]  = rand('A':'B', 150)
+    iris[!,:TestVar]  = rand('A':'B', 150)
     t = tabulate(iris, :Species, :TestVar)
 
     compare_file(36, to_ascii(t))

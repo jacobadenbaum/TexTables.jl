@@ -46,14 +46,14 @@ function summarize(df::AbstractDataFrame, fields=names(df);
                    detail=false, stats=default_stats(detail), kwargs...)
 
     # Determine whether each column is numeric or not
-    numeric = Dict(header => typeof(df[header]) <: NumericCol
+    numeric = Dict(header => typeof(df[!,header]) <: NumericCol
                    for header in fields)
     cols = TableCol[]
     for pair in tuplefy(stats)
         col = TableCol(pair.first)
         for header in fields
             if numeric[header]
-                col[header] = pair.second(df[header])
+                col[header] = pair.second(df[!,header])
             else
                 col[header] = ""
             end
@@ -75,7 +75,7 @@ function summarize_by(df, byname::Symbol,
     gd = groupby(df, byname)
     for sub in gd
         tab = summarize(sub, fields; kwargs...)
-        vals= unique(sub[byname])
+        vals= unique(sub[!,byname])
         length(vals) == 1 || throw(error("Groupby isn't working"))
         idx = vals[1]
         push!(tabs, string(idx)=>tab)
@@ -97,8 +97,8 @@ function tabulate(df::AbstractDataFrame, field::Symbol)
 
     # Construct a Frequency Column
     sort!(tab, field)
-    vals  = tab[field] .|> Symbol
-    freq  = tab[:_N]
+    vals  = tab[!,field] .|> Symbol
+    freq  = tab[!,:_N]
     pct   = freq/sum(freq)*100
     cum   = cumsum(pct)
 
@@ -115,7 +115,7 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
 
     # Count the number of observations by `field`
     fields = vcat(field1, field2)
-    df     = dropmissing(df[fields], disallowmissing=true)
+    df     = dropmissing(df[!,fields], disallowmissing=true)
     tab = by(df, fields, _N = field1 => length)
     sort!(tab, [field1, field2])
 
@@ -123,16 +123,16 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     tab = unstack(tab, field1, field2, :_N)
 
     # Construct the table
-    vals = Symbol.(sort(unique(df[field2])))
+    vals = Symbol.(sort(unique(df[!,field2])))
     cols = []
     for val in vals
-        col  = TableCol(val, Vector(tab[field1]), tab[val])
-        col2 = TableCol(val, "Total" => sum(coalesce.(tab[val], 0)))
+        col  = TableCol(val, Vector(tab[!,field1]), tab[!,val])
+        col2 = TableCol(val, "Total" => sum(coalesce.(tab[!,val], 0)))
         push!(cols, append_table(field1=>col, ""=>col2))
     end
 
-    sums = sum(coalesce.(Matrix(tab[vals]), 0), dims=2) |> vec
-    tot1 = TableCol("Total", Vector(tab[field1]), sums)
+    sums = sum(coalesce.(Matrix(tab[!,vals]), 0), dims=2) |> vec
+    tot1 = TableCol("Total", Vector(tab[!,field1]), sums)
     tot2 = TableCol("Total", "Total" => sum(sums))
     tot  = append_table(field1=>tot1, ""=>tot2)
 
