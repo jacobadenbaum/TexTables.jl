@@ -7,7 +7,7 @@ using StatsModels, GLM, RDatasets
     # Compute summary stats for each variable
     cols = []
     for header in names(df)
-        x = df[header]
+        x = df[!,header]
         stats = TableCol(header,
                          "N"     => length(x),
                          "Mean"  => mean(x),
@@ -76,7 +76,7 @@ end
     # Compute summary stats for each variable
     cols = []
     for header in names(df)
-        x = df[header]
+        x = df[!,header]
         stats = TableCol(header,
                          "N"     => length(x),
                          "Mean"  => mean(x),
