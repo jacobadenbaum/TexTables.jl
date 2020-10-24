@@ -6,6 +6,7 @@ using   Test
 using   Random
 using   LinearAlgebra
 using   Statistics
+using   RDatasets
 
 include("helper.jl")
 

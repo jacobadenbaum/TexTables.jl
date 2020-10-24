@@ -27,11 +27,9 @@ end
 end
 
 @testset "twoway tabulate" begin
-
     # Check a generic one
-    Random.seed!(1234)
-    iris            = dataset("datasets", "iris")
-    iris[!,:TestVar]  = rand('A':'B', 150)
+    iris              = dataset("datasets", "iris")
+    iris[!,:TestVar]  = CSV.read("resources/iris_testvar.csv")[:TestVar]
     t = tabulate(iris, :Species, :TestVar)
 
     compare_file(36, to_ascii(t))

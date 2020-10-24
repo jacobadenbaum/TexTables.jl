@@ -69,7 +69,7 @@ function summarize(df::AbstractDataFrame, field::Symbol; kwargs...)
 end
 
 function summarize_by(df, byname::Symbol,
-                      fields=setdiff(names(df), vcat(byname));
+                      fields=setdiff(names(df), vcat(string.(byname)));
                       kwargs...)
     tabs = []
     gd = groupby(df, byname)
