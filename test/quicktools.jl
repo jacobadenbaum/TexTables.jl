@@ -29,7 +29,7 @@ end
 @testset "twoway tabulate" begin
     # Check a generic one
     iris              = dataset("datasets", "iris")
-    iris[!,:TestVar]  = CSV.read("resources/iris_testvar.csv")[:TestVar]
+    iris[!,:TestVar]  = CSV.read("resources/iris_testvar.csv", DataFrame)[!, :TestVar]
     t = tabulate(iris, :Species, :TestVar)
 
     compare_file(36, to_ascii(t))

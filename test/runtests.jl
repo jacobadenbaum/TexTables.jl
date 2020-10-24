@@ -7,6 +7,7 @@ using   Random
 using   LinearAlgebra
 using   Statistics
 using   RDatasets
+using   CSV
 
 include("helper.jl")
 
