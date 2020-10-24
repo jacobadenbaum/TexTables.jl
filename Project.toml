@@ -1,5 +1,6 @@
 name = "TexTables"
 uuid = "ebf5ac4f-3ec1-555f-9ac9-3d72ed88c471"
+version = 0.2.0
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
