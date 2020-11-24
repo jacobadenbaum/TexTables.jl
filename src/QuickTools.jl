@@ -93,7 +93,7 @@ end
 function tabulate(df::AbstractDataFrame, field::Symbol)
 
     # Count the number of observations by `field`
-    tab = by(df, field, _N = field => length)
+    tab = combine(groupby(df, field), field => length => :_N)
 
     # Construct a Frequency Column
     sort!(tab, field)
@@ -116,7 +116,7 @@ function tabulate(df::AbstractDataFrame, field1::Symbol, field2::Symbol)
     # Count the number of observations by `field`
     fields = vcat(field1, field2)
     df     = dropmissing(df[!,fields], disallowmissing=true)
-    tab = by(df, fields, _N = field1 => length)
+    tab = combine(groupby(df, fields), field1 => length => :_N)
     sort!(tab, [field1, field2])
 
     # Put it into wide form
