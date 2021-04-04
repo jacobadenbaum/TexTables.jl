@@ -184,8 +184,8 @@ function join_table(p1::Pair{P1,T1},
     return join_table(join_table(p1, p2), p3, args...)
 end
 
-join_table(t1::IndexedTable, p2::Pair{P2,T2}) where {P2, T2} = begin
-    join_table(t1, join_table(p2))
+join_table(t1::IndexedTable, p2::Pair{P2,T2}, args...) where {P2, T2} = begin
+    join_table(join_table(t1, join_table(p2)), args...)
 end
 
 join_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
