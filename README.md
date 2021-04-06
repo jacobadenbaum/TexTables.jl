@@ -1,7 +1,6 @@
 # TexTables.jl
-
-[![Build Status](https://travis-ci.org/jacobadenbaum/TexTables.jl.svg?branch=master)](https://travis-ci.org/jacobadenbaum/TexTables.jl)
-[![Coverage Status](https://coveralls.io/repos/github/jacobadenbaum/TexTables.jl/badge.svg?branch=master)](https://coveralls.io/github/jacobadenbaum/TexTables.jl?branch=master)
+[![CI](https://github.com/jacobadenbaum/TexTables.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/jacobadenbaum/TexTables.jl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/jacobadenbaum/TexTables.jl/branch/master/graph/badge.svg?token=ehpys3uhdl)](https://codecov.io/gh/jacobadenbaum/TexTables.jl)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://jacobadenbaum.github.io/TexTables.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://jacobadenbaum.github.io/TexTables.jl/latest)
 
