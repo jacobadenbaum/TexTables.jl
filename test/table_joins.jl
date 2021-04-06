@@ -3,7 +3,7 @@
     # Tests for issue in PR #28 (makes sure that the recursive table join
     # implementation on pairs works properly)
     n = 5
-    keys = ["x$i" for i in 1:4]
+    keys = ["x$i" for i in 1:5]
     cols = Vector{IndexedTable{1,1}}(undef, 4)
     for j in 1:4
         cols[j] = hcat(TableCol("mean", keys, rand(n)),
