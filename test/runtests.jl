@@ -12,7 +12,7 @@ using   CSV
 include("helper.jl")
 
 tests = [   "tablecol", "composite_tables", "indexing", "printing",
-            "examples", "quicktools", "formatted_numbers"]
+            "examples", "quicktools", "formatted_numbers", "table_joins"]
 
 @testset "TexTables" begin
     for testsuite in tests
