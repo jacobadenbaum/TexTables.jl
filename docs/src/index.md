@@ -1,6 +1,6 @@
 # Introduction
 The TexTable package provides an easy way for Julia users to quickly build
-well-formated and publication-ready ASCII and LaTeX tables from a variety of
+well-formatted and publication-ready ASCII and LaTeX tables from a variety of
 different data structures.  It allows the user to easily build complex tables
 from small, modular components in an object oriented fashion, as well as
 providing some methods for easily constructing common tables from regression
@@ -15,7 +15,7 @@ statistics as proof-of-concept.
 
 ## Features
 Currently TexTables will allow you to:
-1.  Build multi-indexed tables programatically with a simple to use interface
+1.  Build multi-indexed tables programmatically with a simple to use interface
     that allows for row and column groupings.
 2.  Print them in the REPL as ASCII tables, or export them to LaTeX for easy
     inclusion
@@ -31,7 +31,7 @@ It also provides constructors and methods to
     analysis
     1.  Summary tables
     2.  Grouped summary tables.
-    3.  One-way frequency tbales.
+    3.  One-way frequency tables.
 
 ## Installation
 

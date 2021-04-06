@@ -4,7 +4,7 @@ assemble on the fly.  In the next few sections, I'll demonstrate some of
 the basic usage, primarily using several convenience functions that make
 it easy to construct common tables.  However, these functions are a
 small subset of what `TexTables` is designed for: it should be easy
-to programatically make any type of hierarchical table and and print it
+to programmatically make any type of hierarchical table and and print it
 to LaTeX.  For more details on how to easily roll-your-own tables (or
 integrate LaTeX tabular output into your own package) using `TexTables`,
 see the Advanced Usage section below.
@@ -114,7 +114,7 @@ SepalLength | 150 | 5.843 |     0.828 | 4.300 | 7.900 | 5.100 | 5.800 | 6.400
  SepalWidth | 150 | 3.057 |     0.436 | 2.000 | 4.400 | 2.800 | 3.000 | 3.300
 
 ```
-There is an analagous function for creating multi-indexed row tables
+There is an analogous function for creating multi-indexed row tables
 `append_table`.  You can see it in action with a call to the function
 `summarize_by`, which calculates summary statistics by grouping on a
 variable.
@@ -145,7 +145,7 @@ versicolor | SepalLength | 5.600 | 5.900 | 6.300
            |  SepalWidth | 2.800 | 3.000 | 3.175
 ```
 Now, when we horizontally concatenate `c1` and `c2`, they will
-automatically maintiain the block-ordering in the rows:
+automatically maintain the block-ordering in the rows:
 ```julia
 julia> final_table = join_table("Regular Summarize"=>c1, "My Detail"=>c2)
            |             |            Regular Summarize            |       My Detail
@@ -382,7 +382,7 @@ Currently, `TexTables` supports the following display options:
         below the coefficients
     2.  :inline -- Prints standard errors in parentheses on the same
         line as the coefficients
-    3.  :none -- Supresses standard errors.  (I don't know why you would
+    3.  :none -- Suppresses standard errors.  (I don't know why you would
         want to do this... you probably shouldn't ever use it.)
 3.  `star::Bool` (default `true`)
         If true, then prints any table entries that have been decorated

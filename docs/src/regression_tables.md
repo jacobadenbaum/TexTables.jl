@@ -58,7 +58,7 @@ argument.
 
 For instance, if you wanted to construct a regression column with two
 coefficients 1.32 (0.89) and -0.21 (0.01), metadata that indicates that the
-underlying estimation rotuine used OLS, and an $R^2$ of 0.73, then you would
+underlying estimation routine used OLS, and an $R^2$ of 0.73, then you would
 run the following code:
 ```jldoctest
 col = RegCol("My Column")
@@ -81,7 +81,7 @@ Estimator |       OLS
 ```
 
 ## Robust Standard Errors
-If you would like to overide the standard `stderror` function for your table,
+If you would like to override the standard `stderror` function for your table,
 use the `stderror` keyword argument.  For instance, you might want to use the
 [CovarianceMatrices](https://github.com/gragusa/CovarianceMatrices.jl) package
 to compute robust standard errors.  In this case, you would simply define a new
@@ -132,7 +132,7 @@ end
 Here, we
 1. Constructed an empty column with the header value passed by the user
 2. Looped through the coefficients, their names, their standard
-   errors, and their pvalues.  On each iteration, we:
+   errors, and their p-values.  On each iteration, we:
 
    a.  Insert the coefficient value and its standard error into the table
 
