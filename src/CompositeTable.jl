@@ -192,6 +192,10 @@ join_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
     join_table(join_table(p2), t1)
 end
 
+join_table(t1::IndexedTable, p2::Pair{P2,T2}, args...) where {P2, T2} = begin
+    join_table(join_table(t1, p2), args...)
+end
+
 # Appending
 append_table(t1::TexTable) = t1
 function append_table(t1::TexTable, t2::TexTable)
