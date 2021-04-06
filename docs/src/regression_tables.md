@@ -60,7 +60,7 @@ For instance, if you wanted to construct a regression column with two
 coefficients 1.32 (0.89) and -0.21 (0.01), metadata that indicates that the
 underlying estimation routine used OLS, and an $R^2$ of 0.73, then you would
 run the following code:
-```jldoctest
+```jldoctest; setup = :(using TexTables) 
 col = RegCol("My Column")
 setcoef!(col, "Coef 1"=>(1.32, 0.89), "Coef 2"=>(-0.21, 0.01))
 setmeta!(col, :Estimator=>"OLS")
