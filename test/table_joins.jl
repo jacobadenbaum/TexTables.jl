@@ -1,4 +1,5 @@
 @testset "Table Joins for Several Pairs" begin
+    import TexTables: IndexedTable, TableCol, join_table
     # Tests for issue in PR #28 (makes sure that the recursive table join
     # implementation on pairs works properly)
     n = 5
