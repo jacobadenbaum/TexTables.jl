@@ -4,7 +4,9 @@ using TexTables
 makedocs(
     modules = [TexTables],
     sitename= "TexTables.jl",
-    format  = :html,
+    format  = Documenter.HTML(
+        prettyurls = get(ENV, "CI", nothing) == "true"
+    ),
     clean   = false,
     authors = "Jacob Adenbaum",
     pages   = [
@@ -20,7 +22,7 @@ makedocs(
 # for more information.
 deploydocs(
     repo   = "github.com/jacobadenbaum/TexTables.jl.git",
-    julia  = "0.6",
+    julia  = "1.6",
     target = "build",
     deps   = nothing,
     make   = nothing
