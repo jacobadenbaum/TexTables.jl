@@ -22,8 +22,4 @@ makedocs(
 # for more information.
 deploydocs(
     repo   = "github.com/jacobadenbaum/TexTables.jl.git",
-    julia  = "1.6",
-    target = "build",
-    deps   = nothing,
-    make   = nothing
 )
