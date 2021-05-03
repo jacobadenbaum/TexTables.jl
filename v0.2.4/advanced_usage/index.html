@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Advanced Usage · TexTables.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">TexTables.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../easy_examples/">Easy Examples</a></li><li><a class="tocitem" href="../basic_usage/">Basic Usage</a></li><li><a class="tocitem" href="../regression_tables/">Regression API</a></li><li class="is-active"><a class="tocitem" href>Advanced Usage</a><ul class="internal"><li class="toplevel"><a class="tocitem" href="#Building-Tables-from-Scratch"><span>Building Tables from Scratch</span></a></li><li><a class="tocitem" href="#Constructing-Columns-From-Vectors:"><span>Constructing Columns From Vectors:</span></a></li><li><a class="tocitem" href="#Constructing-Columns-with-Standard-Errors"><span>Constructing Columns with Standard Errors</span></a></li><li><a class="tocitem" href="#Constructing-Columns-from-:-Associative"><span>Constructing Columns from <code>&lt;: Associative</code></span></a></li><li><a class="tocitem" href="#A-word-of-caution-about-merging-tables"><span>A word of caution about merging tables</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Advanced Usage</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Advanced Usage</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/jacobadenbaum/TexTables.jl/blob/master/docs/src/advanced_usage.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Advanced-Usage"><a class="docs-heading-anchor" href="#Advanced-Usage">Advanced Usage</a><a id="Advanced-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Advanced-Usage" title="Permalink"></a></h1><p>These sections are for advanced users who are interested in fine-tuning their own custom tables or integrating <code>TexTables</code> into their packages.</p><h1 id="Building-Tables-from-Scratch"><a class="docs-heading-anchor" href="#Building-Tables-from-Scratch">Building Tables from Scratch</a><a id="Building-Tables-from-Scratch-1"></a><a class="docs-heading-anchor-permalink" href="#Building-Tables-from-Scratch" title="Permalink"></a></h1><p>The core object when constructing tables with <code>TexTables</code> is the <code>TableCol</code> type.  This is just a wrapper around an <code>OrderedDict</code> and a header index, that enforces conversion of the header and the keys to a special multi-index type that work with the <code>TexTables</code> structure for printing.</p><p>Let&#39;s make up some data (values, keys, and standard errors) so that we can see all of the different ways to construct columns:</p><pre><code class="language-julia">julia&gt; Random.seed!(1234);
+
+julia&gt; vals  = randn(10)
+10-element Array{Float64,1}:
+  0.867347
+ -0.901744
+ -0.494479
+ -0.902914
+  0.864401
+  2.21188
+  0.532813
+ -0.271735
+  0.502334
+ -0.516984
+
+julia&gt; key  = [Symbol(:key, i) for i=1:10];
+
+julia&gt; se  = randn(10) .|&gt; abs .|&gt; sqrt
+10-element Array{Float64,1}:
+ 0.748666
+ 0.138895
+ 0.357861
+ 1.36117
+ 0.909815
+ 0.331807
+ 0.501174
+ 0.608041
+ 0.268545
+ 1.22614</code></pre><h2 id="Constructing-Columns-From-Vectors:"><a class="docs-heading-anchor" href="#Constructing-Columns-From-Vectors:">Constructing Columns From Vectors:</a><a id="Constructing-Columns-From-Vectors:-1"></a><a class="docs-heading-anchor-permalink" href="#Constructing-Columns-From-Vectors:" title="Permalink"></a></h2><p>If your data is already in vector form, the easiest way to construct a <code>TableCol</code> is to just pass the vectors as positional arguments:</p><pre><code class="language-julia">julia&gt; t1 = TableCol(&quot;Column&quot;, key, vals)
+      | Column
+---------------
+ key1 |  0.867
+ key2 | -0.902
+ key3 | -0.494
+ key4 | -0.903
+ key5 |  0.864
+ key6 |  2.212
+ key7 |  0.533
+ key8 | -0.272
+ key9 |  0.502
+key10 | -0.517
+
+julia&gt; typeof(t1)
+TexTables.TableCol{1,1}</code></pre><p>We can also build it iteratively by constructing an empty <code>TableCol</code> object and populating it in a loop:</p><pre><code class="language-julia">julia&gt;  t2 = TableCol(&quot;Column&quot;)
+IndexedTable{1,1} of size (0, 1)
+
+julia&gt;  for (k, v) in zip(key, vals)
+            t2[k] = v
+        end
+
+julia&gt; t2 == t1
+true</code></pre><h2 id="Constructing-Columns-with-Standard-Errors"><a class="docs-heading-anchor" href="#Constructing-Columns-with-Standard-Errors">Constructing Columns with Standard Errors</a><a id="Constructing-Columns-with-Standard-Errors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructing-Columns-with-Standard-Errors" title="Permalink"></a></h2><p>To include standard errors, we can either pass the column of standard errors as a third column, or we can set the index using tuples of <code>(key, value)</code> pairs</p><pre><code class="language-julia">julia&gt;  t3 = TableCol(&quot;Column 2&quot;);
+
+julia&gt;  for (k, v, p) in zip(key, vals, se)
+            t3[k] = v, p
+        end
+
+julia&gt; t3
+      | Column 2
+-----------------
+ key1 |    0.867
+      |  (0.749)
+ key2 |   -0.902
+      |  (0.139)
+ key3 |   -0.494
+      |  (0.358)
+ key4 |   -0.903
+      |  (1.361)
+ key5 |    0.864
+      |  (0.910)
+ key6 |    2.212
+      |  (0.332)
+ key7 |    0.533
+      |  (0.501)
+ key8 |   -0.272
+      |  (0.608)
+ key9 |    0.502
+      |  (0.269)
+key10 |   -0.517
+      |  (1.226)
+
+julia&gt; t3 == TableCol(&quot;Column 2&quot;, key,vals, se)
+true</code></pre><h2 id="Constructing-Columns-from-:-Associative"><a class="docs-heading-anchor" href="#Constructing-Columns-from-:-Associative">Constructing Columns from <code>&lt;: Associative</code></a><a id="Constructing-Columns-from-:-Associative-1"></a><a class="docs-heading-anchor-permalink" href="#Constructing-Columns-from-:-Associative" title="Permalink"></a></h2><p>You can also pass an <code>Associative</code> of <code>key=&gt;value</code> pairs like a <code>Dict</code> or an <code>OrderedDict</code>.  Beware though of using <code>Dict</code> types to pass the data, since they will not maintain insertion order:</p><pre><code class="language-julia">julia&gt; dict  = Dict(Pair.(key, vals));
+julia&gt; dict2 = OrderedDict(Pair.(key, vals));
+julia&gt; TableCol(&quot;Column&quot;, dict) == TableCol(&quot;Column&quot;,dict2)
+false</code></pre><p>To pass standard errors in an <code>Associative</code> as well, you can either pass an associative where the values are tuples, or you can pass two different lookup tables:</p><pre><code class="language-julia">julia&gt; se_dict1= OrderedDict(Pair.(key, tuple.(vals, se)));
+julia&gt; se_dict2= OrderedDict(Pair.(key, se));
+julia&gt; t3 == TableCol(&quot;Column 2&quot;,dict2, se_dict2) == TableCol(&quot;Column 2&quot;, se_dict1)
+true</code></pre><h2 id="A-word-of-caution-about-merging-tables"><a class="docs-heading-anchor" href="#A-word-of-caution-about-merging-tables">A word of caution about merging tables</a><a id="A-word-of-caution-about-merging-tables-1"></a><a class="docs-heading-anchor-permalink" href="#A-word-of-caution-about-merging-tables" title="Permalink"></a></h2><p>Be careful when you are stacking tables: <code>TexTables</code> does not stack them positionally.  It merges them on the the appropriate column or row keys.</p><p>So suppose we were constructing a summary statistics table by computing each column and concatenating them together:</p><pre><code class="language-julia">using RDatasets, TexTables, DataStructures, DataFrames
+df = dataset(&quot;datasets&quot;, &quot;attitude&quot;)
+
+# Compute summary stats for each variable
+cols = []
+for header in names(df)
+    x = df[header]
+    stats = TableCol(header,
+                     &quot;N&quot;     =&gt; length(x),
+                     &quot;Mean&quot;  =&gt; mean(x),
+                     &quot;Std&quot;   =&gt; std(x),
+                     &quot;Min&quot;   =&gt; minimum(x),
+                     &quot;Max&quot;   =&gt; maximum(x))
+    push!(cols, stats)
+end</code></pre><p>The right way to put them together horizontally is by calling <code>hcat</code>:</p><pre><code class="language-julia">julia&gt; tab = hcat(cols[1], cols[2])
+     | Rating | Complaints
+---------------------------
+   N |     30 |         30
+Mean | 64.633 |     66.600
+ Std | 12.173 |     13.315
+ Min |     40 |         37
+ Max |     85 |         90</code></pre><p>But if instead we tried to vertically concatenate them, we would not simply stack the tables the way you might expect.  <code>TexTables</code> will merge the two columns vertically on their column indexes, which in this case are <em>different</em>.</p><pre><code class="language-julia">julia&gt; [cols[1]; cols[2]]
+     | Rating | Complaints
+---------------------------
+   N | 30     |
+Mean | 64.633 |
+ Std | 12.173 |
+ Min | 40     |
+ Max | 85     |
+   N |        | 30
+Mean |        | 66.600
+ Std |        | 13.315
+ Min |        | 37
+ Max |        | 90</code></pre><p>This result, while perhaps unintuitive, is by design.  <code>cols[1]</code> and <code>cols[2]</code> really are not of a shape that could be put together vertically (at least not without overwriting one of their column names). But rather than give an error when some keys are not present, <code>TexTables</code> tries it&#39;s best to put them together in the order you&#39;ve requested.  This behavior is essential for horizontally concatenating two regression tables with summary statistics blocks at the bottom. In general, whenever you concatenate two tables, they need to have the same structure in the dimension that they are not being joined upon, or the results will probably not be what you expected.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../regression_tables/">« Regression API</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 3 May 2021 14:26">Monday 3 May 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
