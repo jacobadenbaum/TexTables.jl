@@ -6,7 +6,7 @@ struct TableIndex{N}
     name::Name{N}
 end
 Index{N}    = Vector{TableIndex{N}}
-Printable   = Union{String, Symbol}
+Printable   = Union{AbstractString, Symbol}
 
 function TableIndex(idx, name)
     return TableIndex(tuplefy(idx), tuplefy(Symbol.(name)))
