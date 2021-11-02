@@ -74,6 +74,8 @@ function TablePrinter(t::TexTable; kwargs...)
     return TablePrinter(table, params, col_schema, row_schema)
 end
 
+
+
 ########################################################################
 #################### Index Schemas #####################################
 ########################################################################
@@ -813,13 +815,13 @@ show(t::IndexedTable; kwargs...) = print(t; kwargs...)
 #################### String Output Methods #############################
 ########################################################################
 
-function to_ascii(t::IndexedTable; kwargs...)
+function to_ascii(t::TexTable; kwargs...)
     any(size(t) .== 0) && throw(error("Can't export empty table"))
     p= TablePrinter(t; table_type = :ascii, kwargs...)
     return head(p)*body(p)*foot(p)
 end
 
-function to_tex(t::IndexedTable; kwargs...)
+function to_tex(t::TexTable; kwargs...)
     any(size(t) .== 0) && throw(error("Can't export empty table"))
     p = TablePrinter(t; table_type = :latex, kwargs...)
     return head(p)*body(p)*foot(p)
@@ -829,7 +831,7 @@ end
 #################### Latex Table Output ################################
 ########################################################################
 
-function write_tex(outfile, t::IndexedTable)
+function write_tex(outfile, t::TexTable)
     open(outfile, "w") do f
         write(f, to_tex(t))
     end
