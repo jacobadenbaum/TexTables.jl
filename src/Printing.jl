@@ -329,7 +329,7 @@ function escape_latex(name)
     while i < length(name)
         # Update whether we're in mathmode
         if name[i] == '$'
-            mathode = mathmode ? false : true
+            mathmode = mathmode ? false : true
         end
 
         s = name[i]
