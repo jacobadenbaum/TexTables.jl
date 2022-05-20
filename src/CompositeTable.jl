@@ -30,9 +30,9 @@ function vcat(t1::IndexedTable, t2::IndexedTable)
 
     # Row Indices stay the same except within the highest group, where they need
     # to be shifted up in order to keep the index unique
-    shift       =   maximum(get_idx(t1.row_index, 1)) -
+    shift         = maximum(get_idx(t1.row_index, 1)) -
                     minimum(get_idx(t2.row_index, 1)) + 1
-    new_index   = map(t2.row_index) do idx
+    new_row_index = map(t2.row_index) do idx
         i1 = idx.idx[1] + shift
         new_idx = tuple(i1, idx.idx[2:end]...)
         return update_index(idx, new_idx)
@@ -40,22 +40,24 @@ function vcat(t1::IndexedTable, t2::IndexedTable)
 
     new_columns = deepcopy(t2.columns)
     for col in new_columns
-        for (idx, new_idx) in zip(t2.row_index, new_index)
+        for (idx, new_idx) in zip(t2.row_index, new_row_index)
             if haskey(col.data, idx)
                 col[new_idx] = pop!(col.data, idx)
             end
         end
     end
 
-    row_index = vcat(t1.row_index, new_index)
+    row_index = vcat(t1.row_index, new_row_index)
 
     # Columns
-    col_index = deepcopy(t1.col_index)
-    columns   = deepcopy(t1.columns)
+    col_index     = deepcopy(t1.col_index)
+    columns       = deepcopy(t1.columns)
+    new_col_index = similar(t2.col_index)
     for (i, idx) in enumerate(t2.col_index)
 
         # Figure out where to insert the column
         new_idx, s = insert_index!(col_index, idx)
+        new_col_index[i] = new_idx
 
         # It might be a new column
         if s > length(columns)
@@ -68,6 +70,11 @@ function vcat(t1::IndexedTable, t2::IndexedTable)
         end
     end
 
+    # Remap the internal column headers to keep them consistent
+    old_new = Dict(Pair.(t2.col_index, new_col_index))
+    for col in new_columns
+        col.header = old_new[col.header]
+    end
 
     return IndexedTable(columns, row_index, col_index)
 

@@ -7,7 +7,10 @@ y  = [Symbol(:key, i) for i=1:10]
 t1 = TableCol("test", y, x)
 t2 = TableCol("test2", y[2:9], x[2:9])
 t3 = TableCol("test3", y, x, randn(10) .|> abs .|> sqrt)
-sub_tab1= hcat(t1, t2, t3)
+sub_tab1 = hcat(t1, t2, t3)
+sub_tab2 = vcat(t1, t2, t3)
+@test sub_tab1.col_index == map(col -> col.header, sub_tab1.columns)
+@test sub_tab2.col_index == map(col -> col.header, sub_tab2.columns)
 
 # Composite Table Checks
 t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes")) |> IndexedTable
@@ -15,10 +18,10 @@ t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))  |> IndexedTable
 t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes")) |> IndexedTable
 
 # Build the table two different ways
-sub_tab2= hcat(t4, t5, t6)
-tab     = vcat(sub_tab1, sub_tab2)
-tab2    = [t1 t2 t3
-           t4 t5 t6]
+sub_tab3 = hcat(t4, t5, t6)
+tab      = vcat(sub_tab1, sub_tab3)
+tab2     = [t1 t2 t3
+            t4 t5 t6]
 @test to_ascii(tab) == to_ascii(tab2)
 
 c1 = append_table(t1, t4)
