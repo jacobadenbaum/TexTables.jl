@@ -139,118 +139,46 @@ vcat(t1::TexTable, t2::TexTable) = vcat(convert.(IndexedTable,
 hcat(t1::TexTable, t2::TexTable) = hcat(convert.(IndexedTable,
                                                  (t1, t2))...)
 
-join_table(t1::IndexedTable) = t1
+to_pair(t::TexTable) = "" => t
+to_pair(p::Pair{P,T}) where {P <: Printable, T <: TexTable} = p
 
-function join_table(t1::TexTable, t2::TexTable)
+# Joining
+join_table(t::IndexedTable) = t
 
-    # Promote to the same dimensions
-    t1, t2 = promote(convert.(IndexedTable, (t1, t2))...)
-
-    t1_new = add_col_level(t1, 1)
-    t2_new = add_col_level(t2, 2)
-
-    return hcat(t1_new, t2_new)
+function join_table(ts...)
+    ps = map(to_pair, ts)
+    return join_table(ps...)
 end
 
-function join_table(t1::TexTable, t2::TexTable,
-                    t3::TexTable, args...)
-    return join_table(join_table(t1,t2), t3, args...)
+function join_table(p::Pair{<:Printable,<:TexTable})
+    t      = convert(IndexedTable, p.second)
+    t_new  = add_col_level(p.second, 1, p.first)
 end
 
-# Joining on Pairs
-function join_table(p1::Pair{P1,T1}) where {P1 <: Printable,
-                                      T1 <: TexTable}
-    t1      = convert(IndexedTable, p1.second)
-    t1_new  = add_col_level(p1.second, 1, p1.first)
-end
-
-function join_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
-    {P1 <: Printable, P2 <: Printable, T1 <: TexTable, T2<:TexTable}
-
-    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second))...)
-
-    t1_new = add_col_level(t1, 1, p1.first)
-    t2_new = add_col_level(t2, 2, p2.first)
-
-    return hcat(t1_new, t2_new)
-end
-
-function join_table(p1::Pair{P1,T1},
-              p2::Pair{P2,T2},
-              p3::Pair{P3,T3}, args...) where
-                {P1 <: Printable, P2 <: Printable, P3<:Printable,
-                T1 <: TexTable, T2<:TexTable, T3<:TexTable}
-
-    return join_table(join_table(p1, p2), p3, args...)
-end
-
-join_table(t1::IndexedTable, p2::Pair{P2,T2}) where {P2, T2} = begin
-    join_table(t1, join_table(p2))
-end
-
-join_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
-    join_table(join_table(p2), t1)
-end
-
-join_table(t1::IndexedTable, p2::Pair{P2,T2}, args...) where {P2, T2} = begin
-    join_table(join_table(t1, p2), args...)
+function join_table(ps::Pair{<:Printable,<:TexTable}...)
+    ts     = promote(map(p -> convert(IndexedTable, p.second), ps)...)
+    ts_new = map((t,p) -> add_col_level(t, 1, p.first), ts, ps)
+    return hcat(ts_new...)
 end
 
 # Appending
-append_table(t1::TexTable) = t1
-function append_table(t1::TexTable, t2::TexTable)
+append_table(t::TexTable) = t
 
-    # Promote to the same dimensions
-    t1, t2 = promote(t1, t2)
-
-    t1_new = add_row_level(t1, 1)
-    t2_new = add_row_level(t2, 2)
-
-    return vcat(t1_new, t2_new)
+function append_table(ts...)
+    ps = map(to_pair, ts)
+    return append_table(ps...)
 end
 
-function append_table(t1::TexTable, t2::TexTable, t3::TexTable, args...)
-    return append_table(append_table(t1,t2), t3, args...)
+function append_table(p::Pair{<:Printable,<:TexTable})
+    t      = convert(IndexedTable, p.second)
+    t1_new = add_row_level(p.second, 1, p.first)
 end
 
-# Appending on Pairs
-function append_table(p1::Pair{P1,T1}) where {P1 <: Printable,
-                                      T1 <: TexTable}
-    t1      = convert(IndexedTable, p1.second)
-    t1_new  = add_row_level(p1.second, 1, p1.first)
+function append_table(ps::Pair{<:Printable,<:TexTable}...)
+    ts     = promote(map(p -> convert(IndexedTable, p.second), ps)...)
+    ts_new = map((t,p) -> add_row_level(t, 1, p.first), ts, ps)
+    return vcat(ts_new...)
 end
-
-function append_table(p1::Pair{P1,T1}, p2::Pair{P2,T2}) where
-    {P1 <: Printable, P2 <: Printable, T1 <: TexTable, T2<:TexTable}
-
-    t1, t2 = promote(convert.(IndexedTable, (p1.second, p2.second))...)
-    t1_new = add_row_level(t1, 1, p1.first)
-    t2_new = add_row_level(t2, 2, p2.first)
-
-    return vcat(t1_new, t2_new)
-end
-
-function append_table(p1::Pair{P1,T1},
-              p2::Pair{P2,T2},
-              p3::Pair{P3,T3}, args...) where
-                {P1 <: Printable, P2 <: Printable, P3<:Printable,
-                T1 <: TexTable, T2<:TexTable, T3<:TexTable}
-
-    return append_table(append_table(p1, p2), p3, args...)
-end
-
-append_table(t1::IndexedTable, p2::Pair{P2,T2}) where {P2, T2} = begin
-    append_table(t1, append_table(p2))
-end
-
-append_table(p2::Pair{P2,T2},t1::IndexedTable) where {P2, T2} = begin
-    append_table(append_table(p2), t1)
-end
-
-append_table(t1::IndexedTable, p2::Pair{P2,T2}, args...) where {P2, T2} = begin
-    append_table(append_table(t1, p2), args...)
-end
-
 
 
 ################################################################################

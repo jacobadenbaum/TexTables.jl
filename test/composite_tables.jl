@@ -24,5 +24,12 @@ tab2    = [t1 t2 t3
 c1 = append_table(t1, t4)
 c2 = append_table(t2, t5)
 c3 = append_table(t3, t6)
+@test c1 isa IndexedTable{2,1}
+
+c4 = append_table(t1, t4, t4)
+@test c4 isa IndexedTable{2,1}
+
+c5 = join_table(t1, t2, t3)
+@test c5 isa IndexedTable{1,2}
 
 compare_file(1, to_tex(sub_tab1))
