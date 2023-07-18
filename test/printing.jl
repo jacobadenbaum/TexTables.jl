@@ -3,12 +3,18 @@ import TexTables:   get_level, generate_schema, check_table_type,
 
 @testset "Extracting Index Levels" begin
     # Standard Composite Tables
-    Random.seed!(1234)
-    x  = randn(10)
+    x = [0.8673472019512456, -0.9017438158568171, -0.4944787535042339,
+        -0.9029142938652416, 0.8644013132535154, 2.2118774995743475,
+        0.5328132821695382, -0.27173539603462066, 0.5023344963886675,
+        -0.5169836206932686] 
+    x2 = [-0.5605013381807765, -0.019291781689849075, 0.12806443451512645,
+        1.852782957725545, -0.8277634318169205, 0.11009612632217552,
+        -0.2511757400198831, 0.3697140350317453, 0.07211635315125874,
+        -1.503429457351051]
     y  = [Symbol(:key, i) for i=1:10]
     t1 = TableCol("test", y, x)
     t2 = TableCol("test2", y[2:9], x[2:9])
-    t3 = TableCol("test3", y, x, randn(10) .|> abs .|> sqrt)
+    t3 = TableCol("test3", y, x, x2 .|> abs .|> sqrt)
     t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes"))
     t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))
     t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes"))
@@ -42,12 +48,18 @@ end
 
 @testset "Index Schemas" begin
     # Standard Composite Tables
-    Random.seed!(1234)
-    x  = randn(10)
+    x = [0.8673472019512456, -0.9017438158568171, -0.4944787535042339,
+        -0.9029142938652416, 0.8644013132535154, 2.2118774995743475,
+        0.5328132821695382, -0.27173539603462066, 0.5023344963886675,
+        -0.5169836206932686] 
+    x2 = [-0.5605013381807765, -0.019291781689849075, 0.12806443451512645,
+        1.852782957725545, -0.8277634318169205, 0.11009612632217552,
+        -0.2511757400198831, 0.3697140350317453, 0.07211635315125874,
+        -1.503429457351051]
     y  = [Symbol(:key, i) for i=1:10]
     t1 = TableCol("test", y, x)
     t2 = TableCol("test2", y[2:9], x[2:9])
-    t3 = TableCol("test3", y, x, randn(10) .|> abs .|> sqrt)
+    t3 = TableCol("test3", y, x, x2 .|> abs .|> sqrt)
     t4 = TableCol("test" , Dict("Fixed Effects"=>"Yes"))
     t5 = TableCol("test2", Dict("Fixed Effects"=>"No"))
     t6 = TableCol("test3", Dict("Fixed Effects"=>"Yes"))
