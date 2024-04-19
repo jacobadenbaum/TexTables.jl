@@ -23,3 +23,10 @@ TexTables is a registered Julia package, so it can be installed with the command
 Pkg.add("TexTables")
 ```
 For more usage details, please see the latest documentation.
+
+# Maintenance Status
+This package is maintained, however it is no longer in active development.  
+It works well enough for my purposes, and while I'm happy to review and merge PRs 
+(so long as the tests are passing), I'm not likely to put a lot of effort into
+implementing new features.  If someone is interested in working on this more actively,
+I'm very open to bringing on another maintainer.
