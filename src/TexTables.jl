@@ -3,7 +3,7 @@ module TexTables
 # package code goes here
 
 # Nice string formattting
-using Formatting, DataStructures, DataFrames
+using Format, DataStructures, DataFrames
 
 # Required for StatsModels Integration
 using StatsBase
